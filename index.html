@@ -1342,7 +1342,7 @@ footer {
 
       <div class="estimate-result" id="estResult">
         <div class="est-breakdown">
-          <div class="est-line"><span>契約金</span><span>¥90,000</span></div>
+          <div class="est-line" id="estContract"><span>契約金</span><span id="estContractAmt">¥90,000</span></div>
           <div class="est-line" id="estManage"><span>管理費（3年分）</span><span>¥108,000</span></div>
           <div class="est-line" id="estExtraLine" style="display:none"><span>追加送骨料</span><span>¥30,000/回</span></div>
           <div class="est-line" id="estBoxLine" style="display:none"><span>骨箱</span><span>¥20,000</span></div>
@@ -2214,6 +2214,8 @@ function calcEstimate() {
 
   var tEl = document.getElementById('estTotal');
   if (tEl) tEl.innerHTML = '<span>概算合計</span><span>¥' + total.toLocaleString() + '〜</span>';
+  var cEl = document.getElementById('estContractAmt');
+  if (cEl) cEl.textContent = '¥' + contract.toLocaleString();
 }
 
 // ── 郵便番号→住所自動入力 ──
