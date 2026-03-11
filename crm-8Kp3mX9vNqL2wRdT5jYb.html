@@ -166,6 +166,35 @@ tr:hover td { background: rgba(201,162,39,0.03); }
 .access-denied p { color: var(--muted); font-size: 13px; }
 .user-card { border: 1px solid var(--gray); border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--navy2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+/* ハンバーガーボタン */
+.hamburger { display: none; position: fixed; top: 12px; left: 12px; z-index: 200; background: var(--navy); border: none; border-radius: 8px; padding: 8px 10px; cursor: pointer; flex-direction: column; gap: 5px; }
+.hamburger span { display: block; width: 22px; height: 2px; background: var(--gold); border-radius: 2px; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+
+@media (max-width: 768px) {
+  .hamburger { display: flex; }
+  .sidebar { transform: translateX(-100%); transition: transform 0.25s; z-index: 150; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; }
+  .main { margin-left: 0; }
+  .topbar { padding: 0 16px 0 56px; }
+  .content { padding: 16px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .dash-grid { grid-template-columns: 1fr !important; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 8px; }
+  .btn { font-size: 12px; padding: 7px 12px; }
+  .search-bar { gap: 6px; }
+  .form-input { min-width: 100px; font-size: 12px; }
+  .modal { width: 95vw !important; max-width: 95vw !important; margin: 0 auto; }
+  .topbar-actions { gap: 6px; }
+  .topbar-title { font-size: 15px; }
+  .period-filter { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+@media (max-width: 400px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stat-value { font-size: 20px; }
+}
 </style>
 </head>
 <body>
@@ -204,7 +233,9 @@ tr:hover td { background: rgba(201,162,39,0.03); }
   </div>
 </div>
 <div id="app">
-  <nav class="sidebar">
+<button class="hamburger" onclick="toggleSidebar()" aria-label="メニュー"><span></span><span></span><span></span></button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <nav class="sidebar" id="sidebar">
     <div class="sidebar-logo"><div class="name">送骨堂</div><div class="sub">CRM SYSTEM</div></div>
     <div class="sidebar-nav"></div>
     <div class="sidebar-bottom">
@@ -232,6 +263,8 @@ function getSavedConfig(){return{url:'https://jbnhvwncddvvtpaigzeq.supabase.co',
 function initSupabase(url,key){sb=supabase.createClient(url,key);return sb;}
 function saveSupabaseConfig(){const url=document.getElementById('setup-url').value.trim(),key=document.getElementById('setup-key').value.trim();if(!url||!key){toast('URLとキーを入力してください','error');return;}localStorage.setItem('sb_url',url);localStorage.setItem('sb_key',key);initSupabase(url,key);document.getElementById('setup-screen').style.display='none';document.getElementById('auth-screen').style.display='flex';toast('設定を保存しました');}
 async function doLogin(){const email=document.getElementById('login-email').value.trim(),pass=document.getElementById('login-pass').value,err=document.getElementById('auth-err');err.textContent='';if(!sb){err.textContent='設定エラー';return;}if(!email.endsWith('@'+ALLOWED_DOMAIN)){err.textContent=`@${ALLOWED_DOMAIN} のメールアドレスのみログイン可能です`;return;}const{data,error}=await sb.auth.signInWithPassword({email,password:pass});if(error){err.textContent='メールアドレスまたはパスワードが正しくありません';return;}await startApp(data.user);}
+function toggleSidebar(){const s=document.getElementById('sidebar'),o=document.getElementById('sidebar-overlay');s.classList.toggle('open');o.classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');}
 function checkLineBrowser(){const ua=navigator.userAgent;if(/Line\//i.test(ua)){document.getElementById('auth-screen').innerHTML=`<div class="auth-box" style="text-align:center;"><div class="auth-logo">送骨堂</div><div class="auth-sub">CRM SYSTEM</div><div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin-bottom:20px;color:#856404;font-size:13px;line-height:1.6;">⚠️ LINEのブラウザではGoogleログインができません。<br>下のボタンから外部ブラウザで開いてください。</div><a href="https://sokotsudo.com/crm-8Kp3mX9vNqL2wRdT5jYb.html" style="display:block;padding:13px;background:var(--gold);border-radius:8px;color:var(--navy);font-weight:700;font-size:15px;text-decoration:none;">ブラウザで開く</a></div>`;}}
 async function doGoogleLogin(){if(!sb){document.getElementById('auth-err').textContent='設定エラー';return;}const{error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://sokotsudo.com/crm-8Kp3mX9vNqL2wRdT5jYb.html',queryParams:{hd:ALLOWED_DOMAIN,prompt:'select_account'}}});if(error)document.getElementById('auth-err').textContent=error.message;}
 async function doLogout(){await sb.auth.signOut();document.getElementById('app').classList.remove('visible');document.getElementById('auth-screen').style.display='flex';}
@@ -245,7 +278,7 @@ function confirmCancel(){document.getElementById('confirm-overlay').classList.re
 function toast(msg,type='info'){const t=document.createElement('div');t.className='toast'+(type==='success'?' success':type==='error'?' error':'');t.textContent=msg;document.getElementById('toast-container').appendChild(t);setTimeout(()=>t.remove(),3000);}
 let currentPage='dashboard';
 const pageTitles={dashboard:'ダッシュボード',customers:'顧客一覧','customer-detail':'顧客詳細',visits:'見学予約管理',deliveries:'送骨予定一覧','payments-in':'入金管理','payments-out':'出金管理',temples:'寺院マスタ',users:'ユーザー管理'};
-function showPage(page,data=null){currentPage=page;document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));document.getElementById('page-title').textContent=pageTitles[page]||page;document.getElementById('topbar-actions').innerHTML='';const content=document.getElementById('page-content');content.innerHTML='<div class="loading"><span class="spinner"></span>読み込み中...</div>';pages[page]?pages[page](data):(content.innerHTML='<div class="empty">ページが見つかりません</div>');}
+function showPage(page,data=null){closeSidebar();currentPage=page;document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));document.getElementById('page-title').textContent=pageTitles[page]||page;document.getElementById('topbar-actions').innerHTML='';const content=document.getElementById('page-content');content.innerHTML='<div class="loading"><span class="spinner"></span>読み込み中...</div>';pages[page]?pages[page](data):(content.innerHTML='<div class="empty">ページが見つかりません</div>');}
 function fmt(n){return n?Number(n).toLocaleString():'—';}
 function fmtDate(d){if(!d)return'—';const dt=new Date(d);return`${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`;}
 function fmtDateTime(d){if(!d)return'—';const dt=new Date(d);return`${fmtDate(d)} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;}
