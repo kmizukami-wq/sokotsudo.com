@@ -1271,6 +1271,8 @@ footer {
 
       <div class="estimate-result" id="estResult">
         <div class="est-breakdown">
+          <div class="est-line" id="estContract"><span>契約金</span><span id="estContractAmt">¥90,000</span></div>
+          <div class="est-line" id="estKinugiLine"><span>寺院への志納金</span><span id="estKinugiAmt">¥10,000</span></div>
           <div class="est-line" id="estManage"><span>管理費（3年分）</span><span id="estManageAmt">¥108,000</span></div>
           <div class="est-line" id="estBoxLine"><span>骨箱</span><span>¥20,000</span></div>
           <div class="est-line" id="estExtraLine" style="display:none"><span>追加送骨料</span><span id="estExtraAmt">¥30,000/回</span></div>
@@ -2128,7 +2130,7 @@ function calcEstimate() {
   var manage   = (tData ? tData.annualFee : 36000) * period;
   var boxFee   = 20000;
   var extraFee = extra * 30000 * period; // 追加送骨：回数×¥30,000×年数
-  var total    = manage + boxFee + extraFee;
+  var total    = contract + kinugi + manage + boxFee + extraFee;
 
   var mEl = document.getElementById('estManageAmt');
   if (mEl) mEl.textContent = '¥' + manage.toLocaleString();
@@ -2136,7 +2138,13 @@ function calcEstimate() {
   var mLabelEl = document.getElementById('estManage');
   if (mLabelEl) mLabelEl.querySelector('span').textContent = '管理費（' + period + '年分）';
 
-  var mFeeAmt = document.getElementById('estManageFeeAmt');
+  var kEl = document.getElementById('estKinugiAmt');
+  if (kEl) kEl.textContent = '¥' + kinugi.toLocaleString();
+
+  var cEl = document.getElementById('estContractAmt');
+  if (cEl) cEl.textContent = '¥' + contract.toLocaleString();
+
+    var mFeeAmt = document.getElementById('estManageFeeAmt');
   if (mFeeAmt) mFeeAmt.textContent = manage > 0 ? '¥' + manage.toLocaleString() : '—';
   var mFeeLabel = document.getElementById('estManageFeeLabel');
   if (mFeeLabel) mFeeLabel.textContent = '管理費（' + period + '年分）';
