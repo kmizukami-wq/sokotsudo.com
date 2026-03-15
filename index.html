@@ -2067,11 +2067,9 @@ function updateResults() {
       '<div class="result-area">📍 ' + t.area + t.city + ' · ' + t.sect + '</div>' +
       '<div class="result-tags">' + tagsHtml + '</div></div>' +
       '<div class="result-price">' +
-      '<div class="price-from">契約金</div>' +
-      '<div><span class="price-num">' + t.price.toLocaleString() + '</span><span class="price-unit">円</span></div>' +
-      '<div style="font-size:11px;color:var(--muted);margin-top:2px;">管理費 ' + (t.annualFee || 36000).toLocaleString() + '円/年</div>' +
-      '<div style="font-size:10px;color:var(--muted);margin-top:6px;">志納金</div>' +
-      '<div><span class="price-num" style="font-size:16px;">' + t.kinugi.toLocaleString() + '</span><span class="price-unit">円</span></div>' +
+      '<div class="fee-row"><span class="fee-label">契約金</span><span class="fee-value fee-main">¥' + t.price.toLocaleString() + '</span></div>' +
+      '<div class="fee-row"><span class="fee-label">管理費<span class="fee-note">/年</span></span><span class="fee-value">¥' + t.annualFee.toLocaleString() + '</span></div>' +
+      '<div class="fee-row"><span class="fee-label">志納金</span><span class="fee-value">¥' + t.kinugi.toLocaleString() + '</span></div>' +
       '</div>' +
       '</div>';
   }).join('');
