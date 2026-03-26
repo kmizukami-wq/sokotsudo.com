@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-USD/JPY NYクローズ・ミーンリバージョン戦略 バックテスト
+USD/JPY 仲値ショート戦略 バックテスト
 取引期間: 2011/01 - 2026/03 (約15年)
 通貨ペア: USD/JPY
 
 戦略概要:
   - NYクローズ(前日終値)を基準レートとする
-  - 東京9時(当日始値)で基準から±30pips以上乖離していればエントリー
-  - NYクローズ方向へ逆張り
+  - 日本時間9:55(仲値)でNYクローズから+30pips以上上回っている場合のみ
+  - NYクローズ方向へショートエントリー(ロングなし)
   - TP1: 中間地点で半分決済 / TP2: NYクローズ到達で残り決済
   - SL: エントリーから30pips逆方向
+  ※ 9:55 JSTの仲値レートは日足始値(9:00 JST)で近似
 """
 
 import warnings
@@ -36,7 +37,7 @@ LEVERAGE = 25
 SPREAD_PIPS = 0.3
 SPREAD_JPY = SPREAD_PIPS * 0.01  # 0.003 JPY per unit
 ENTRY_THRESHOLD_JPY = 0.30       # 30 pips
-SL_JPY = 0.50                    # 50 pips stop loss
+SL_JPY = 0.30                    # 30 pips stop loss
 INITIAL_CAPITAL = 1_000_000
 SIMULATION_CAPITAL = 100_000
 RISK_PER_TRADE = 0.02
@@ -48,11 +49,34 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Data Loading
 # ============================================================
 def load_data(start=START_DATE, end=END_DATE):
+    # Daily data (full period)
     df = yf.download(TICKER, start=start, end=end, progress=False)
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.droplevel(1)
     df = df[['Open', 'High', 'Low', 'Close']].copy()
     df.dropna(inplace=True)
+
+    # Default: use Open (9:00 JST) as entry price proxy
+    df['Entry_Price'] = df['Open']
+
+    # Hourly data for recent period: get exact 10:00 JST (01:00 UTC)
+    try:
+        df_h = yf.download(TICKER, period='730d', interval='1h', progress=False)
+        if isinstance(df_h.columns, pd.MultiIndex):
+            df_h.columns = df_h.columns.droplevel(1)
+        # Filter to 01:00 UTC = 10:00 JST candles
+        jst_10 = df_h[df_h.index.hour == 1].copy()
+        jst_10.index = jst_10.index.normalize().tz_localize(None)  # Convert to date-only for merge
+        jst_10 = jst_10[~jst_10.index.duplicated(keep='first')]
+        # Override Entry_Price where hourly data is available
+        matched = df.index.isin(jst_10.index)
+        df.loc[matched, 'Entry_Price'] = jst_10.loc[df.index[matched], 'Open'].values
+        hourly_count = matched.sum()
+        print(f"  10:00 JST正確レート: {hourly_count}日分 (時間足データ)")
+        print(f"  9:00 JST近似レート: {(~matched).sum()}日分 (日足始値)")
+    except Exception as e:
+        print(f"  時間足データ取得失敗、全期間9:00 JST近似: {e}")
+
     df['NY_Close'] = df['Close'].shift(1)
     df.dropna(inplace=True)
     return df
@@ -129,41 +153,30 @@ def run_backtest(df, initial_capital=INITIAL_CAPITAL):
         row = df.iloc[i]
         date = df.index[i]
         ny_close = row['NY_Close']
-        open_price = row['Open']
+        entry_price = row['Entry_Price']  # 10:00 JST (or 9:00 JST approx)
         high = row['High']
         low = row['Low']
         close = row['Close']
 
-        deviation = open_price - ny_close
-        deviation_abs = abs(deviation)
+        deviation = entry_price - ny_close  # positive = price above NY Close
 
-        # No trade if deviation < 30 pips
-        if deviation_abs < ENTRY_THRESHOLD_JPY:
+        # SHORT ONLY: only enter when price is 30+ pips ABOVE NY Close
+        if deviation < ENTRY_THRESHOLD_JPY:
             equity_curve.append({'date': date, 'equity': equity})
             continue
 
-        # Determine direction
-        if deviation > 0:
-            direction = -1  # SHORT: price above NY Close, expect reversion down
-        else:
-            direction = 1   # LONG: price below NY Close, expect reversion up
+        direction = -1  # SHORT only
 
-        # Calculate levels
-        if direction == 1:  # LONG
-            effective_entry = open_price + SPREAD_JPY / 2
-            tp1_level = effective_entry + (ny_close - effective_entry) / 2
-            tp2_level = ny_close
-            sl_level = effective_entry - SL_JPY
-        else:  # SHORT
-            effective_entry = open_price - SPREAD_JPY / 2
-            tp1_level = effective_entry - (effective_entry - ny_close) / 2
-            tp2_level = ny_close
-            sl_level = effective_entry + SL_JPY
+        # Calculate levels (SHORT)
+        effective_entry = entry_price - SPREAD_JPY / 2
+        tp1_level = effective_entry - (effective_entry - ny_close) / 2
+        tp2_level = ny_close
+        sl_level = effective_entry + SL_JPY
 
         # Position sizing: 2% risk / 30 pip stop
         risk_amount = equity * RISK_PER_TRADE
         units = risk_amount / SL_JPY
-        max_units = (equity * LEVERAGE) / open_price
+        max_units = (equity * LEVERAGE) / entry_price
         units = min(units, max_units)
 
         if units <= 0:
@@ -173,7 +186,7 @@ def run_backtest(df, initial_capital=INITIAL_CAPITAL):
         half_units = units / 2
 
         # Resolve outcome
-        outcome = resolve_outcome(direction, open_price, high, low,
+        outcome = resolve_outcome(direction, entry_price, high, low,
                                   tp1_level, tp2_level, sl_level)
 
         # Calculate PnL
@@ -222,9 +235,9 @@ def run_backtest(df, initial_capital=INITIAL_CAPITAL):
         trade = NYCloseTrade(
             date=date,
             ny_close=ny_close,
-            entry_price=open_price,
+            entry_price=entry_price,
             direction=direction,
-            deviation_pips=deviation_abs / 0.01,
+            deviation_pips=deviation / 0.01,
             units=units,
             tp1_level=tp1_level,
             tp2_level=tp2_level,
@@ -313,7 +326,7 @@ def generate_report(trades, equity_df, metrics, sim_trades, sim_equity, df):
     m = metrics
     lines = []
     lines.append("=" * 70)
-    lines.append("  USD/JPY NYクローズ・ミーンリバージョン戦略 バックテストレポート")
+    lines.append("  USD/JPY 仲値ショート戦略 バックテストレポート")
     lines.append(f"  取引期間: {df.index[0].strftime('%Y/%m/%d')} - {df.index[-1].strftime('%Y/%m/%d')}")
     lines.append(f"  初期資金: ¥{INITIAL_CAPITAL:,.0f}  レバレッジ: {LEVERAGE}倍  スプレッド: {SPREAD_PIPS}pips")
     lines.append("=" * 70)
@@ -321,14 +334,14 @@ def generate_report(trades, equity_df, metrics, sim_trades, sim_equity, df):
 
     lines.append("■ 売買ロジック:")
     lines.append("  1. 毎日、NYクローズ(前日終値)を基準レートに設定")
-    lines.append("  2. 日本時間9:00(当日始値)に基準レートからの乖離を判定")
-    lines.append("  3. ±30pips以上の乖離があればエントリー")
-    lines.append("     → 基準より上に乖離 → ショート(下落を期待)")
-    lines.append("     → 基準より下に乖離 → ロング(上昇を期待)")
+    lines.append("  2. 日本時間10:00のレートでNYクローズからの乖離を判定")
+    lines.append("     ※直近2.7年は時間足から10:00 JST正確値、それ以前は始値(9:00)近似")
+    lines.append("  3. NYクローズから+30pips以上上回っている場合のみエントリー")
+    lines.append("     → ショート(売り)のみ。ロングエントリーなし")
     lines.append("  4. 利確条件:")
     lines.append("     → TP1: エントリー〜NYクローズの中間到達で半分決済")
     lines.append("     → TP2: NYクローズ到達で残り半分決済")
-    lines.append("  5. 損切り: エントリーから30pips逆方向で全決済")
+    lines.append("  5. 損切り: エントリーから30pips逆方向(上方向)で全決済")
     lines.append("")
 
     lines.append("=" * 70)
@@ -371,16 +384,6 @@ def generate_report(trades, equity_df, metrics, sim_trades, sim_equity, df):
         outcome_pnls = [t.pnl_total for t in trades if t.outcome == key]
         avg_pnl = np.mean(outcome_pnls) if outcome_pnls else 0
         lines.append(f"  {label:<30} {count:>4}回 ({pct:>5.1f}%)  平均損益: ¥{avg_pnl:>+,.0f}")
-    lines.append("")
-
-    # Direction breakdown
-    long_trades = [t for t in trades if t.direction == 1]
-    short_trades = [t for t in trades if t.direction == -1]
-    long_pnl = sum(t.pnl_total for t in long_trades)
-    short_pnl = sum(t.pnl_total for t in short_trades)
-    lines.append("■ 方向別成績:")
-    lines.append(f"  ロング: {len(long_trades)}回  合計損益: ¥{long_pnl:>+,.0f}")
-    lines.append(f"  ショート: {len(short_trades)}回  合計損益: ¥{short_pnl:>+,.0f}")
     lines.append("")
 
     # Yearly breakdown
@@ -486,8 +489,8 @@ def generate_report(trades, equity_df, metrics, sim_trades, sim_equity, df):
 
     lines.append("=" * 70)
     lines.append("【注意事項】")
-    lines.append("  - 本分析は日足OHLC(始値/高値/安値/終値)での近似バックテストです")
-    lines.append("  - 9:00 JST = 当日始値、NYクローズ = 前日終値として近似しています")
+    lines.append("  - 直近2.7年は時間足から10:00 JST正確値、それ以前は日足始値(9:00)で近似")
+    lines.append("  - NYクローズ = 前日終値として近似")
     lines.append("  - 同一日にTP/SLが両方到達可能な場合は保守的に判定しています")
     lines.append("  - 過去データに基づく結果であり、将来の利益を保証しません")
     lines.append("  - 実際にはスリッページ、約定遅延等で結果が異なります")
@@ -512,7 +515,7 @@ def generate_charts(trades, equity_df, df):
         color = 'green' if t.pnl_total > 0 else 'red'
         marker = '^' if t.direction == 1 else 'v'
         ax1.scatter(t.date, t.entry_price, color=color, marker=marker, s=8, alpha=0.6)
-    ax1.set_title('USD/JPY - NY Close Mean Reversion Strategy (2011-2026)', fontsize=12)
+    ax1.set_title('USD/JPY - Nakaene Short Strategy (10:00 JST, 2011-2026)', fontsize=12)
     ax1.set_ylabel('USD/JPY')
     ax1.grid(True, alpha=0.3)
 
@@ -591,16 +594,16 @@ def generate_charts(trades, equity_df, df):
 # Main Execution
 # ============================================================
 def main():
-    print("USD/JPY NYクローズ・ミーンリバージョン戦略 バックテスト")
+    print("USD/JPY 仲値ショート戦略 バックテスト")
     print("=" * 50)
     print("データ読み込み中...")
     df = load_data()
     print(f"  データ: {len(df)}日分 ({df.index[0].strftime('%Y/%m/%d')} - {df.index[-1].strftime('%Y/%m/%d')})")
 
-    # Check how many days meet the entry condition
-    deviations = abs(df['Open'] - df['NY_Close'])
+    # Check how many days meet the entry condition (SHORT only: price above NY Close + 30pips)
+    deviations = df['Entry_Price'] - df['NY_Close']
     entry_days = (deviations >= ENTRY_THRESHOLD_JPY).sum()
-    print(f"  エントリー条件(±30pips)を満たす日: {entry_days}日 ({entry_days/len(df)*100:.1f}%)")
+    print(f"  エントリー条件(+30pips以上ショート)を満たす日: {entry_days}日 ({entry_days/len(df)*100:.1f}%)")
 
     print("\nバックテスト実行中 (初期資金: ¥1,000,000)...")
     trades, equity_df = run_backtest(df, INITIAL_CAPITAL)
