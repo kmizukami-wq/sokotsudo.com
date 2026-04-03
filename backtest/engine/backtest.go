@@ -4,6 +4,17 @@ import (
 	"github.com/sokotsudo/backtest/strategy"
 )
 
+// FilterDataByYear returns only the bars from the given year.
+func FilterDataByYear(data []strategy.OHLCV, year int) []strategy.OHLCV {
+	var filtered []strategy.OHLCV
+	for _, d := range data {
+		if d.Time.Year() == year {
+			filtered = append(filtered, d)
+		}
+	}
+	return filtered
+}
+
 // BacktestEngine runs a backtest simulation.
 type BacktestEngine struct {
 	Data       []strategy.OHLCV
