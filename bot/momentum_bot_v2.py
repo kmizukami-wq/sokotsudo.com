@@ -49,6 +49,12 @@ from risk_manager import (
     ScaleOutManager, EntryFilter, AdaptiveThreshold,
 )
 
+try:
+    from ml_model import FeatureBuilder, SignalPredictor, features_to_matrix
+    HAS_ML = True
+except ImportError:
+    HAS_ML = False
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -61,8 +67,13 @@ LB_SHORT = 288         # 24h lookback in 5-min bars (24*12) — confirmation
 WARMUP_DAYS = 4        # Days of history to fetch on startup
 
 # Risk parameters
-CAPITAL_RATIO = 0.20   # 20% of collateral per trade (Fractional Kelly)
-MAX_LOSS_RATIO = 0.15  # Emergency stop at -15% (was -20%)
+CAPITAL_RATIO = 0.90   # V3 optimal: 90% of collateral per trade
+MAX_LOSS_RATIO = 0.15  # Emergency stop at -15%
+
+# XGBoost hybrid thresholds (V4 Boost mode)
+ML_PROB_BOOST = 0.55   # Above this → 1.2x size (ML confident)
+ML_PROB_SKIP = 0.40    # Below this → skip trade (ML disagrees)
+ML_BOOST_MULT = 1.2    # Size multiplier for high-confidence trades
 
 # Timing
 INTV = 300             # Check interval: 5 minutes
@@ -305,6 +316,17 @@ class MomentumBotV2:
         self.inc_atr = IncrementalATR(period=14)
         self.inc_rsi = IncrementalRSI(period=14)
 
+        # XGBoost hybrid model
+        self.ml_predictor = None
+        self.feature_builder = None
+        if HAS_ML:
+            self.feature_builder = FeatureBuilder()
+            self.ml_predictor = SignalPredictor()
+            if self.ml_predictor.load():
+                logger.info("ML model loaded from %s", self.ml_predictor.model_path)
+            else:
+                logger.info("No ML model found — running without XGBoost filter")
+
         # State
         self.position_side = None   # 'LONG', 'SHORT', or None
         self.position_size = 0.0
@@ -489,6 +511,13 @@ class MomentumBotV2:
                 logger.info("SKIP LONG: %s", reason)
                 return
 
+            # ML confidence check
+            ml_mult = self._ml_size_mult("LONG")
+
+            if ml_mult <= 0:
+                logger.info("SKIP LONG: ML confidence below %.2f", ML_PROB_SKIP)
+                return
+
             # Position sizing
             collateral = get_collateral()
             self.peak_equity = max(self.peak_equity, collateral)
@@ -496,7 +525,8 @@ class MomentumBotV2:
                 collateral, price, regime,
                 self.peak_equity, collateral, MIN_SIZE,
             )
-            if size <= 0:
+            size *= ml_mult
+            if size < MIN_SIZE:
                 return
 
             send_order("BUY", size)
@@ -508,8 +538,8 @@ class MomentumBotV2:
             self.scale_out.reset()
             self.trade_count += 1
             logger.info(
-                "OPENED LONG: %.4f BTC @ %.0f (mom=%.3f%%, th=%.2f%%)",
-                size, price, mom_long * 100, threshold * 100,
+                "OPENED LONG: %.4f BTC @ %.0f (mom=%.3f%%, th=%.2f%%, ml=%.1fx)",
+                size, price, mom_long * 100, threshold * 100, ml_mult,
             )
 
         # === SHORT signal ===
@@ -526,13 +556,21 @@ class MomentumBotV2:
                 logger.info("SKIP SHORT: %s", reason)
                 return
 
+            # ML confidence check
+            ml_mult = self._ml_size_mult("SHORT")
+
+            if ml_mult <= 0:
+                logger.info("SKIP SHORT: ML confidence below %.2f", ML_PROB_SKIP)
+                return
+
             collateral = get_collateral()
             self.peak_equity = max(self.peak_equity, collateral)
             size = self.position_sizer.calculate(
                 collateral, price, regime,
                 self.peak_equity, collateral, MIN_SIZE,
             )
-            if size <= 0:
+            size *= ml_mult
+            if size < MIN_SIZE:
                 return
 
             send_order("SELL", size)
@@ -544,9 +582,57 @@ class MomentumBotV2:
             self.scale_out.reset()
             self.trade_count += 1
             logger.info(
-                "OPENED SHORT: %.4f BTC @ %.0f (mom=%.3f%%, th=%.2f%%)",
-                size, price, mom_long * 100, threshold * 100,
+                "OPENED SHORT: %.4f BTC @ %.0f (mom=%.3f%%, th=%.2f%%, ml=%.1fx)",
+                size, price, mom_long * 100, threshold * 100, ml_mult,
             )
+
+    def _ml_size_mult(self, direction):
+        """Get ML-based size multiplier for a trade direction.
+
+        Returns:
+            1.2 if ML confident (prob > ML_PROB_BOOST)
+            1.0 if ML neutral (ML_PROB_SKIP < prob <= ML_PROB_BOOST)
+            0.0 if ML disagrees (prob <= ML_PROB_SKIP)
+        """
+        if self.ml_predictor is None or not self.ml_predictor.is_ready:
+            return 1.0  # No ML model → use V3 sizing as-is
+
+        if self.feature_builder is None or len(self.prices) < FeatureBuilder.MIN_BARS:
+            return 1.0
+
+        try:
+            closes = np.array(self.prices)
+            highs_arr = np.array(self.highs)
+            lows_arr = np.array(self.lows)
+            volumes_arr = np.array(self.volumes)
+
+            features = self.feature_builder.build(
+                closes, highs_arr, lows_arr, volumes_arr)
+            X, valid = features_to_matrix(
+                features, self.feature_builder.feature_names)
+
+            if not valid[-1]:
+                return 1.0
+
+            x_i = X[-1:, :]
+            prob = self.ml_predictor.predict_proba(x_i, direction=direction)
+            prob_val = float(prob[0]) if hasattr(prob, '__len__') else float(prob)
+
+            if prob_val > ML_PROB_BOOST:
+                logger.info("ML: %s confidence=%.3f → BOOST (%.1fx)",
+                            direction, prob_val, ML_BOOST_MULT)
+                return ML_BOOST_MULT
+            elif prob_val > ML_PROB_SKIP:
+                logger.info("ML: %s confidence=%.3f → NORMAL (1.0x)",
+                            direction, prob_val)
+                return 1.0
+            else:
+                logger.info("ML: %s confidence=%.3f → SKIP",
+                            direction, prob_val)
+                return 0.0
+        except Exception as e:
+            logger.warning("ML prediction error: %s", e)
+            return 1.0  # Fallback to V3
 
     def manage_position(self, indicators):
         """Manage existing position: trailing stop + scale-out."""

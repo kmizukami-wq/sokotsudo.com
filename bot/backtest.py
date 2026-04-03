@@ -27,6 +27,12 @@ from risk_manager import (
     ScaleOutManager, EntryFilter, AdaptiveThreshold,
 )
 
+try:
+    from ml_model import FeatureBuilder, SignalPredictor, features_to_matrix
+    HAS_ML = True
+except ImportError:
+    HAS_ML = False
+
 BB_BASE = "https://public.bitbank.cc"
 
 
@@ -438,6 +444,344 @@ def backtest_v2(data, initial_capital=1_000_000, capital_ratio=0.20, label=None)
 
 
 # ---------------------------------------------------------------------------
+# V3 Strategy (Aggressive Optimized)
+# ---------------------------------------------------------------------------
+
+def backtest_v3(data, initial_capital=1_000_000, capital_ratio=0.90,
+                adx_th=20.0, use_mtf=False, use_scaleout=False,
+                sl_mult=2.5, eq_levels=None, label=None):
+    """V3: Keep ATR dynamic SL + adaptive threshold, relax filters for more return.
+
+    vs V2: higher cap ratio, lower/optional ADX, optional MTF, optional scale-out.
+    eq_levels: custom equity drawdown levels for PositionSizer, or None for default.
+    """
+    name = label or f"V3 Cap{int(capital_ratio*100)}% ADX{int(adx_th)} MTF={'Y' if use_mtf else 'N'} SL×{sl_mult}"
+    result = BacktestResult(name=name, initial_capital=initial_capital)
+    closes = data["close"]
+    highs = data["high"]
+    lows = data["low"]
+    n = len(closes)
+
+    LB_L = 72
+    LB_S = 24
+
+    vol_regime_cls = VolatilityRegime()
+    pos_sizer = PositionSizer(capital_ratio=capital_ratio,
+                              equity_drawdown_levels=eq_levels)
+    dyn_sl = DynamicStopLoss(atr_multiplier=sl_mult)
+    scale_mgr = ScaleOutManager() if use_scaleout else None
+    entry_flt = EntryFilter(adx_threshold=adx_th, enable_rsi=True)
+    adapt_th = AdaptiveThreshold()
+
+    atr_arr = atr(highs, lows, closes, period=14)
+    rsi_arr = rsi(closes, period=14)
+    adx_arr, _, _ = adx(highs, lows, closes, period=14)
+    rvol_arr = realized_volatility(closes, period=30)
+    rvol_annual = rvol_arr * math.sqrt(24 * 365)
+
+    equity = initial_capital
+    peak_equity = initial_capital
+    position = None
+
+    for i in range(LB_L, n):
+        result.equity_curve.append(equity)
+        price = closes[i]
+
+        mom_l = (price - closes[i - LB_L]) / closes[i - LB_L]
+        mom_s = (price - closes[i - LB_S]) / closes[i - LB_S] if i >= LB_S else None
+
+        cur_atr = atr_arr[i] if not np.isnan(atr_arr[i]) else None
+        cur_rsi = rsi_arr[i] if not np.isnan(rsi_arr[i]) else None
+        cur_adx = adx_arr[i] if not np.isnan(adx_arr[i]) else None
+        cur_rvol = rvol_annual[i] if not np.isnan(rvol_annual[i]) else None
+
+        regime = vol_regime_cls.classify(cur_rvol)
+        threshold = adapt_th.get_threshold(regime)
+
+        if position is None:
+            if mom_l > threshold:
+                if use_mtf and mom_s is not None and mom_s <= 0:
+                    continue
+                ok, _ = entry_flt.check_long(adx_value=cur_adx, rsi_value=cur_rsi)
+                if not ok:
+                    continue
+                peak_equity = max(peak_equity, equity)
+                size = pos_sizer.calculate(equity, price, regime, peak_equity, equity, min_size=0.001)
+                if size <= 0:
+                    continue
+                position = {"side": "LONG", "size": size, "original_size": size,
+                            "entry": price, "peak": price, "bar": i}
+                if scale_mgr:
+                    scale_mgr.reset()
+
+            elif mom_l < -threshold:
+                if use_mtf and mom_s is not None and mom_s >= 0:
+                    continue
+                ok, _ = entry_flt.check_short(adx_value=cur_adx, rsi_value=cur_rsi)
+                if not ok:
+                    continue
+                peak_equity = max(peak_equity, equity)
+                size = pos_sizer.calculate(equity, price, regime, peak_equity, equity, min_size=0.001)
+                if size <= 0:
+                    continue
+                position = {"side": "SHORT", "size": size, "original_size": size,
+                            "entry": price, "trough": price, "bar": i}
+                if scale_mgr:
+                    scale_mgr.reset()
+        else:
+            stop_pct = dyn_sl.stop_distance_pct(cur_atr, price, regime)
+
+            if scale_mgr:
+                partial = scale_mgr.check(position["entry"], price, position["side"], position["original_size"])
+                if partial > 0 and partial < position["size"]:
+                    pnl_pct = ((price - position["entry"]) / position["entry"]
+                               if position["side"] == "LONG"
+                               else (position["entry"] - price) / position["entry"])
+                    equity += pnl_pct * position["entry"] * partial
+                    position["size"] = round(position["size"] - partial, 8)
+
+            should_close = False
+            if position["side"] == "LONG":
+                position["peak"] = max(position["peak"], price)
+                if (price - position["peak"]) / position["peak"] <= -stop_pct:
+                    should_close = True
+            else:
+                position["trough"] = min(position["trough"], price)
+                if (price - position["trough"]) / position["trough"] >= stop_pct:
+                    should_close = True
+
+            if should_close:
+                pnl_pct = ((price - position["entry"]) / position["entry"]
+                           if position["side"] == "LONG"
+                           else (position["entry"] - price) / position["entry"])
+                pnl_jpy = pnl_pct * position["entry"] * position["size"]
+                equity += pnl_jpy
+                result.trades.append(Trade(
+                    position["side"], position["entry"], price,
+                    position["bar"], i, position["size"], pnl_pct, pnl_jpy, "SL"))
+                position = None
+
+    if position:
+        price = closes[-1]
+        pnl_pct = ((price - position["entry"]) / position["entry"]
+                   if position["side"] == "LONG"
+                   else (position["entry"] - price) / position["entry"])
+        pnl_jpy = pnl_pct * position["entry"] * position["size"]
+        equity += pnl_jpy
+        result.trades.append(Trade(
+            position["side"], position["entry"], price,
+            position["bar"], n - 1, position["size"], pnl_pct, pnl_jpy, "END"))
+    result.equity_curve.append(equity)
+    return result
+
+
+# ---------------------------------------------------------------------------
+# V4 Hybrid Strategy (V3 + XGBoost confidence filter)
+# ---------------------------------------------------------------------------
+
+def backtest_v4_hybrid(data, initial_capital=1_000_000, capital_ratio=0.90,
+                       adx_th=25.0, sl_mult=2.5,
+                       train_hours=24*180, embargo_hours=24*7,
+                       prob_full=0.6, prob_half=0.5,
+                       label=None):
+    """V4: V3 rules + XGBoost confidence-based position sizing.
+
+    Walk-forward: train on past data, predict on current bar.
+    When V3 generates a signal, XGBoost scores confidence:
+      prob > prob_full  → full size (capital_ratio)
+      prob > prob_half  → half size (capital_ratio * 0.5)
+      prob <= prob_half → skip signal
+    """
+    if not HAS_ML:
+        print("ERROR: ml_model not available. Install xgboost: pip install xgboost scikit-learn")
+        sys.exit(1)
+
+    name = label or f"V4 Hybrid (XGB prob>{prob_full:.1f}/{prob_half:.1f})"
+    result = BacktestResult(name=name, initial_capital=initial_capital)
+    closes = data["close"]
+    highs = data["high"]
+    lows = data["low"]
+    volumes = data["volume"]
+    timestamps = data["timestamps"]
+    n = len(closes)
+
+    LB_L = 72
+    LB_S = 24
+
+    # V3 risk modules
+    vol_regime_cls = VolatilityRegime()
+    pos_sizer = PositionSizer(capital_ratio=capital_ratio,
+                              equity_drawdown_levels=[(1.0, 1.0)])  # no eq scaling
+    dyn_sl = DynamicStopLoss(atr_multiplier=sl_mult)
+    entry_flt = EntryFilter(adx_threshold=adx_th, enable_rsi=True)
+    adapt_th = AdaptiveThreshold()
+
+    # Pre-compute V3 indicators
+    print("  Computing V3 indicators...")
+    atr_arr = atr(highs, lows, closes, period=14)
+    rsi_arr = rsi(closes, period=14)
+    adx_arr, _, _ = adx(highs, lows, closes, period=14)
+    rvol_arr = realized_volatility(closes, period=30)
+    rvol_annual = rvol_arr * math.sqrt(24 * 365)
+
+    # Build ML features for entire dataset
+    print("  Building ML features...")
+    fb = FeatureBuilder()
+    features = fb.build(closes, highs, lows, volumes, timestamps)
+    labels = fb.build_labels(closes, horizon=5, threshold=0.01)
+    X, valid_mask = features_to_matrix(features, fb.feature_names)
+
+    label_valid = np.isfinite(labels)
+    full_mask = valid_mask & label_valid
+
+    equity = initial_capital
+    peak_equity = initial_capital
+    position = None
+
+    # ML model state
+    predictor = None
+    last_train_bar = 0
+    retrain_interval = 24 * 30  # retrain monthly
+    skipped_by_ml = 0
+    halved_by_ml = 0
+    full_by_ml = 0
+
+    print("  Running V4 hybrid backtest...")
+
+    for i in range(LB_L, n):
+        result.equity_curve.append(equity)
+        price = closes[i]
+
+        # === Retrain ML model periodically (walk-forward) ===
+        if (predictor is None or i - last_train_bar >= retrain_interval) and i >= train_hours:
+            train_start = max(0, i - train_hours)
+            train_end = i - embargo_hours  # embargo gap
+
+            if train_end > train_start + 100:
+                train_idx = np.arange(train_start, train_end)
+                tmask = full_mask[train_idx]
+                X_t = X[train_idx[tmask]]
+                y_t = labels[train_idx[tmask]]
+
+                if len(X_t) >= 100:
+                    predictor = SignalPredictor()
+                    predictor.train(X_t, y_t)
+                    last_train_bar = i
+
+        # V3 indicators
+        mom_l = (price - closes[i - LB_L]) / closes[i - LB_L]
+        mom_s = (price - closes[i - LB_S]) / closes[i - LB_S] if i >= LB_S else None
+
+        cur_atr = atr_arr[i] if not np.isnan(atr_arr[i]) else None
+        cur_rsi = rsi_arr[i] if not np.isnan(rsi_arr[i]) else None
+        cur_adx = adx_arr[i] if not np.isnan(adx_arr[i]) else None
+        cur_rvol = rvol_annual[i] if not np.isnan(rvol_annual[i]) else None
+
+        regime = vol_regime_cls.classify(cur_rvol)
+        threshold = adapt_th.get_threshold(regime)
+
+        if position is None:
+            direction = None
+            if mom_l > threshold:
+                # MTF check
+                if mom_s is not None and mom_s <= 0:
+                    continue
+                ok, _ = entry_flt.check_long(adx_value=cur_adx, rsi_value=cur_rsi)
+                if not ok:
+                    continue
+                direction = "LONG"
+            elif mom_l < -threshold:
+                if mom_s is not None and mom_s >= 0:
+                    continue
+                ok, _ = entry_flt.check_short(adx_value=cur_adx, rsi_value=cur_rsi)
+                if not ok:
+                    continue
+                direction = "SHORT"
+
+            if direction is not None:
+                # === XGBoost confidence filter ===
+                size_mult = 1.0  # default full size
+                if predictor is not None and predictor.is_ready and valid_mask[i]:
+                    x_i = X[i:i+1]
+                    prob = predictor.predict_proba(x_i, direction=direction)
+                    prob_val = float(prob[0]) if hasattr(prob, '__len__') else float(prob)
+
+                    if prob_val > prob_full:
+                        size_mult = 1.2  # ML boost: 20% extra size
+                        full_by_ml += 1
+                    elif prob_val > prob_half:
+                        size_mult = 1.0  # Normal V3 size
+                        halved_by_ml += 1
+                    else:
+                        size_mult = 0.0
+                        skipped_by_ml += 1
+                        continue  # ML says skip
+
+                peak_equity = max(peak_equity, equity)
+                base_size = pos_sizer.calculate(
+                    equity, price, regime, peak_equity, equity, min_size=0.001)
+                size = base_size * size_mult
+                if size <= 0.001:
+                    continue
+
+                if direction == "LONG":
+                    position = {"side": "LONG", "size": size,
+                                "entry": price, "peak": price, "bar": i}
+                else:
+                    position = {"side": "SHORT", "size": size,
+                                "entry": price, "trough": price, "bar": i}
+
+        else:
+            # === Position management (same as V3) ===
+            stop_pct = dyn_sl.stop_distance_pct(cur_atr, price, regime)
+
+            should_close = False
+            if position["side"] == "LONG":
+                position["peak"] = max(position["peak"], price)
+                if (price - position["peak"]) / position["peak"] <= -stop_pct:
+                    should_close = True
+            else:
+                position["trough"] = min(position["trough"], price)
+                if (price - position["trough"]) / position["trough"] >= stop_pct:
+                    should_close = True
+
+            if should_close:
+                pnl_pct = ((price - position["entry"]) / position["entry"]
+                           if position["side"] == "LONG"
+                           else (position["entry"] - price) / position["entry"])
+                pnl_jpy = pnl_pct * position["entry"] * position["size"]
+                equity += pnl_jpy
+                result.trades.append(Trade(
+                    position["side"], position["entry"], price,
+                    position["bar"], i, position["size"], pnl_pct, pnl_jpy, "SL"))
+                position = None
+
+    # Close remaining
+    if position:
+        price = closes[-1]
+        pnl_pct = ((price - position["entry"]) / position["entry"]
+                   if position["side"] == "LONG"
+                   else (position["entry"] - price) / position["entry"])
+        pnl_jpy = pnl_pct * position["entry"] * position["size"]
+        equity += pnl_jpy
+        result.trades.append(Trade(
+            position["side"], position["entry"], price,
+            position["bar"], n - 1, position["size"], pnl_pct, pnl_jpy, "END"))
+    result.equity_curve.append(equity)
+
+    # ML stats
+    total_signals = full_by_ml + halved_by_ml + skipped_by_ml
+    if total_signals > 0:
+        print(f"\n  ML Filter Stats:")
+        print(f"    Full size (prob>{prob_full}):  {full_by_ml:>5d} ({full_by_ml/total_signals*100:.1f}%)")
+        print(f"    Half size (prob>{prob_half}):  {halved_by_ml:>5d} ({halved_by_ml/total_signals*100:.1f}%)")
+        print(f"    Skipped   (prob<{prob_half}):  {skipped_by_ml:>5d} ({skipped_by_ml/total_signals*100:.1f}%)")
+        print(f"    Total V3 signals:       {total_signals:>5d}")
+
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -449,6 +793,10 @@ def main():
     parser.add_argument("--v2-only", action="store_true")
     parser.add_argument("--sweep", action="store_true",
                         help="Sweep capital ratios: 20%,30%,40%,50%,60%,70%,80%,90%")
+    parser.add_argument("--v3", action="store_true",
+                        help="Run V3 aggressive sweep: vary ADX, MTF, SL multiplier")
+    parser.add_argument("--v4", action="store_true",
+                        help="Run V4 hybrid (V3 + XGBoost) vs V3 comparison")
     args = parser.parse_args()
 
     data = fetch_hourly_data(args.days)
@@ -456,6 +804,107 @@ def main():
     if len(data["close"]) < 100:
         print("ERROR: Not enough data fetched.")
         sys.exit(1)
+
+    # === V4 hybrid comparison ===
+    if args.v4:
+        print("\nRunning V1 baseline...")
+        r1 = backtest_v1(data, args.capital)
+
+        print("\nRunning V3 best (C90 ADX25 MTF noEQ)...")
+        EQ_NONE = [(1.0, 1.0)]
+        r3 = backtest_v3(data, args.capital, capital_ratio=0.90,
+                         adx_th=25, use_mtf=True, use_scaleout=False,
+                         sl_mult=2.5, eq_levels=EQ_NONE,
+                         label="V3 C90 ADX25 MTF noEQ (best)")
+
+        print("\nRunning V4 Hybrid (filter mode: 0.6/0.5)...")
+        r4a = backtest_v4_hybrid(data, args.capital, capital_ratio=0.90,
+                                 adx_th=25, sl_mult=2.5,
+                                 prob_full=0.6, prob_half=0.5,
+                                 label="V4 Filter (0.6/0.5)")
+
+        print("\nRunning V4 Hybrid (boost mode: skip<0.40, boost>0.55)...")
+        r4b = backtest_v4_hybrid(data, args.capital, capital_ratio=0.90,
+                                 adx_th=25, sl_mult=2.5,
+                                 prob_full=0.55, prob_half=0.40,
+                                 label="V4 Boost (0.55/0.40)")
+
+        print("\nRunning V4 Hybrid (light filter: skip<0.35 only)...")
+        r4c = backtest_v4_hybrid(data, args.capital, capital_ratio=0.90,
+                                 adx_th=25, sl_mult=2.5,
+                                 prob_full=0.55, prob_half=0.35,
+                                 label="V4 Light (0.55/0.35)")
+
+        all_results = [r1, r3, r4a, r4b, r4c]
+
+        print(f"\n{'='*100}")
+        print(f"  V3 vs V4 HYBRID COMPARISON")
+        print(f"{'='*100}")
+        hdr = f"{'Strategy':<42} {'Return%':>9} {'Annual%':>9} {'Trades':>7} {'WinR%':>7} {'MaxDD%':>8} {'Sharpe':>7}"
+        print(hdr)
+        print("-" * 100)
+
+        for r in all_results:
+            years = len(r.equity_curve) / (24 * 365) if r.equity_curve else 1
+            ann = ((r.equity_curve[-1] / r.initial_capital) ** (1 / years) - 1) * 100 if years > 0 else 0
+            print(f"{r.name:<42} {r.total_return:>8.1f}% {ann:>8.1f}% {r.num_trades:>7d} {r.win_rate:>6.1f}% {r.max_drawdown:>7.1f}% {r.sharpe_ratio:>7.2f}")
+
+        print(f"{'='*100}")
+        return
+
+    # === V3 aggressive sweep ===
+    if args.v3:
+        print("\nRunning V1 baseline...")
+        r1 = backtest_v1(data, args.capital)
+
+        # Equity level presets
+        EQ_STRICT = [(0.05, 0.80), (0.10, 0.60), (0.15, 0.00)]      # Default: stop at -15%
+        EQ_MODERATE = [(0.10, 0.70), (0.20, 0.40), (0.25, 0.00)]    # Stop at -25%
+        EQ_RELAXED = [(0.15, 0.70), (0.25, 0.40), (0.30, 0.00)]     # Stop at -30%
+        EQ_NONE = [(1.0, 1.0)]                                        # No scaling
+
+        configs = [
+            # (cap, adx, mtf, so, sl_mult, eq_levels, tag)
+            (0.90, 25, False, False, 2.5, EQ_STRICT,   "strict"),
+            (0.90, 25, False, False, 2.5, EQ_MODERATE,  "moderate"),
+            (0.90, 25, False, False, 2.5, EQ_RELAXED,   "relaxed"),
+            (0.90, 25, False, False, 2.5, EQ_NONE,      "no-eq"),
+            (0.90, 25, True,  False, 2.5, EQ_MODERATE,  "MTF+mod"),
+            (0.90, 25, True,  False, 2.5, EQ_RELAXED,   "MTF+rlx"),
+            (0.90, 25, True,  False, 2.5, EQ_NONE,      "MTF+noEQ"),
+            (0.90, 20, True,  False, 2.5, EQ_NONE,      "A20+MTF+noEQ"),
+            (0.90, 25, False, False, 3.0, EQ_NONE,      "SL3+noEQ"),
+            (0.90, 25, False, False, 2.0, EQ_NONE,      "SL2+noEQ"),
+        ]
+
+        v3_results = []
+        for cap, adx_t, mtf, so, sl_m, eq_lvl, tag in configs:
+            label = f"V3 C{int(cap*100)} ADX{adx_t} {'MTF' if mtf else '---'} SL×{sl_m} {tag}"
+            print(f"  Running {label}...")
+            r = backtest_v3(data, args.capital, capital_ratio=cap,
+                           adx_th=adx_t, use_mtf=mtf, use_scaleout=so,
+                           sl_mult=sl_m, eq_levels=eq_lvl, label=label)
+            v3_results.append(r)
+
+        print(f"\n{'='*95}")
+        print(f"  V3 AGGRESSIVE OPTIMIZATION SWEEP")
+        print(f"{'='*95}")
+        hdr = f"{'Strategy':<40} {'Return%':>9} {'Annual%':>9} {'Trades':>7} {'WinR%':>7} {'MaxDD%':>8} {'Sharpe':>7}"
+        print(hdr)
+        print("-" * 95)
+
+        years = len(r1.equity_curve) / (24 * 365) if r1.equity_curve else 1
+        a1 = ((r1.equity_curve[-1] / r1.initial_capital) ** (1 / years) - 1) * 100 if years > 0 else 0
+        print(f"{'V1 Original (fixed SL2.5% Cap90%)':<40} {r1.total_return:>8.1f}% {a1:>8.1f}% {r1.num_trades:>7d} {r1.win_rate:>6.1f}% {r1.max_drawdown:>7.1f}% {r1.sharpe_ratio:>7.2f}")
+        print("-" * 95)
+
+        for r in v3_results:
+            yrs = len(r.equity_curve) / (24 * 365) if r.equity_curve else 1
+            ann = ((r.equity_curve[-1] / r.initial_capital) ** (1 / yrs) - 1) * 100 if yrs > 0 else 0
+            print(f"{r.name:<40} {r.total_return:>8.1f}% {ann:>8.1f}% {r.num_trades:>7d} {r.win_rate:>6.1f}% {r.max_drawdown:>7.1f}% {r.sharpe_ratio:>7.2f}")
+
+        print(f"{'='*95}")
+        return
 
     # === Sweep mode: compare multiple capital ratios ===
     if args.sweep:

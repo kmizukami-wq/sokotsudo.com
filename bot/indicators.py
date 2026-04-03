@@ -183,6 +183,49 @@ def realized_volatility(closes, period=30):
     return result
 
 
+def macd(closes, fast=12, slow=26, signal=9):
+    """MACD (Moving Average Convergence Divergence).
+
+    Returns (macd_line, signal_line, histogram) as numpy arrays.
+    """
+    n = len(closes)
+    if n < slow + signal:
+        nans = np.full(n, np.nan)
+        return nans, nans, nans
+
+    def ema(data, period):
+        result = np.full(len(data), np.nan, dtype=float)
+        result[period - 1] = np.mean(data[:period])
+        mult = 2.0 / (period + 1)
+        for i in range(period, len(data)):
+            result[i] = (data[i] - result[i - 1]) * mult + result[i - 1]
+        return result
+
+    ema_fast = ema(closes, fast)
+    ema_slow = ema(closes, slow)
+    macd_line = ema_fast - ema_slow
+
+    # Signal line = EMA of MACD line (starting from first valid MACD)
+    signal_line = np.full(n, np.nan, dtype=float)
+    valid_start = slow - 1
+    macd_valid = macd_line[valid_start:]
+    if len(macd_valid) >= signal:
+        sig = ema(macd_valid, signal)
+        signal_line[valid_start:] = sig
+
+    histogram = macd_line - signal_line
+
+    return macd_line, signal_line, histogram
+
+
+def sma(closes, period):
+    """Simple Moving Average."""
+    result = np.full(len(closes), np.nan, dtype=float)
+    for i in range(period - 1, len(closes)):
+        result[i] = np.mean(closes[i - period + 1:i + 1])
+    return result
+
+
 class IncrementalATR:
     """Incremental ATR calculator for live trading.
 
