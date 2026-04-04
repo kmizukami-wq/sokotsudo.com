@@ -40,6 +40,30 @@ from urllib.parse import urlencode
 
 import numpy as np
 
+
+def load_env():
+    """Load environment variables from .env or .env.mm file (no dotenv needed)."""
+    for env_file in [".env", ".env.mm", "../.env", "../.env.mm"]:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), env_file)
+        if os.path.exists(path):
+            with open(path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    if "=" in line:
+                        key, _, value = line.partition("=")
+                        key = key.strip()
+                        value = value.strip().strip('"').strip("'")
+                        if key and key not in os.environ:
+                            os.environ[key] = value
+            return path
+    return None
+
+
+_env_path = load_env()
+
+
 from indicators import (
     atr, rsi, adx, momentum, realized_volatility,
     IncrementalATR, IncrementalRSI,

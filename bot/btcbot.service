@@ -1,0 +1,26 @@
+[Unit]
+Description=BTC/JPY Momentum Bot V4 (Hybrid XGBoost)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/sokotsudo/bot
+EnvironmentFile=/home/ubuntu/sokotsudo/.env
+ExecStart=/usr/bin/python3 /home/ubuntu/sokotsudo/bot/momentum_bot_v2.py
+Restart=always
+RestartSec=30
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Logging
+StandardOutput=append:/home/ubuntu/momentum_bot_v2.log
+StandardError=append:/home/ubuntu/momentum_bot_v2.log
+
+# Resource limits for t3.micro
+MemoryMax=800M
+CPUQuota=80%
+
+[Install]
+WantedBy=multi-user.target
