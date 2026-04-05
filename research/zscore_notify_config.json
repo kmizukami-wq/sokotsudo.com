@@ -18,7 +18,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "例外的に有効。最大逆行-1160pips（GBP系で最小）、CAGR558%（全ペア2位）"
     },
@@ -27,7 +27,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "ボラ高。利益幅大"
     },
@@ -36,7 +36,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "除外: 最大逆行リスクが大きい"
     },
@@ -45,7 +45,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "27年で損切1回あり"
     },
@@ -54,7 +54,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "最も流動性高い"
     },
@@ -63,7 +63,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "S級。27年勝率100%,MaxDD 0%,CAGR510%"
     },
@@ -72,7 +72,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "オセアニア。損切1回,MaxDD24.8%"
     },
@@ -81,7 +81,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "損切3回,MaxDD25.3%。全ペア中最多損切"
     },
@@ -90,7 +90,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "勝率100%,MaxDD 0%,CAGR495%"
     },
@@ -99,7 +99,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "勝率100%,MaxDD 0%,CAGR474%"
     },
@@ -108,7 +108,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "除外: 最大逆行リスクが大きい"
     },
@@ -117,7 +117,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "損切1回,MaxDD17.1%,CAGR465%"
     },
@@ -126,7 +126,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "損切1回,MaxDD19.1%,CAGR508%"
     },
@@ -135,7 +135,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "全26ペア1位! CAGR566%,MaxDD0%,勝率100%"
     },
@@ -144,7 +144,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR538%,MaxDD0%,勝率100%"
     },
@@ -153,7 +153,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR520%,MaxDD0%,勝率100%"
     },
@@ -162,7 +162,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR524%,損切2回,MaxDD19.7%"
     },
@@ -171,7 +171,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR542%,損切1回,MaxDD26.6%"
     },
@@ -180,7 +180,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR536%,損切1回,MaxDD23.2%"
     },
@@ -189,7 +189,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "除外: 最大逆行リスクが大きい"
     },
@@ -198,7 +198,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR500%,MaxDD0%,勝率100%"
     },
@@ -207,7 +207,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR500%,損切3回,MaxDD24%"
     },
@@ -216,7 +216,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR484%,損切5回(最多),MaxDD18.7%"
     },
@@ -225,7 +225,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR479%,損切2回,MaxDD27.2%"
     },
@@ -234,7 +234,7 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "除外: 最大逆行リスクが大きい"
     },
@@ -243,12 +243,13 @@
       "window": 30,
       "entry_z": 1.5,
       "exit_z": 0.5,
-      "stop_z": 4.0,
+      "stop_z": 2.0,
       "risk_pct": 15,
       "note": "CAGR460%,MaxDD0%,勝率100%"
     }
   },
   "twelve_data": {
     "api_key": "afc3f7569027406cb0320e59fa6c8f0e"
-  }
+  },
+  "account_balance": 500000
 }

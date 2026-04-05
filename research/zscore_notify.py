@@ -297,10 +297,84 @@ def determine_action(analysis: dict, params: dict, current_position: dict) -> di
 
 
 # ============================================================
+# ロット計算
+# ============================================================
+def calculate_lot(pair: str, params: dict, account_balance: float) -> dict:
+    """口座残高とSL幅から推奨ロット（1000通貨単位）を計算"""
+    risk_pct = params.get('risk_pct', 15) / 100
+    stop_z = params.get('stop_z', 2.0)
+    entry_z = params.get('entry_z', 1.5)
+    window = params.get('window', 30)
+
+    # pip値
+    quote = pair.split('/')[1]
+    pip_size = 0.01 if quote == 'JPY' else 0.0001
+    pip_jpy_map = {'JPY': 1000, 'USD': 1500, 'GBP': 2000,
+                   'CAD': 1100, 'CHF': 1700, 'AUD': 1000, 'NZD': 900}
+    pip_value = pip_jpy_map.get(quote, 1500)
+
+    # SL幅 = σ × (entry_z + stop_z) をpipsに換算
+    # σの概算値（ペア別）
+    sigma_map = {
+        'EUR/GBP': 0.0071, 'EUR/USD': 0.0137, 'EUR/JPY': 1.72,
+        'EUR/CAD': 0.0165, 'EUR/CHF': 0.0077, 'EUR/AUD': 0.0193,
+        'EUR/NZD': 0.0235, 'USD/JPY': 1.38, 'USD/CAD': 0.0123,
+        'USD/CHF': 0.0138, 'AUD/USD': 0.0108, 'AUD/NZD': 0.0102,
+        'AUD/JPY': 1.36, 'AUD/CAD': 0.0096, 'AUD/CHF': 0.0113,
+        'NZD/USD': 0.0100, 'NZD/JPY': 1.22, 'NZD/CHF': 0.0100,
+        'NZD/CAD': 0.0099, 'CAD/JPY': 1.32, 'CAD/CHF': 0.0114,
+        'CHF/JPY': 1.29, 'GBP/USD': 0.0170, 'GBP/JPY': 2.10,
+        'GBP/CHF': 0.0160, 'GBP/CAD': 0.0200,
+    }
+    sigma = sigma_map.get(pair, 0.01)
+    sl_price = sigma * (entry_z + stop_z)
+    sl_pips = sl_price / pip_size
+
+    # ロット計算
+    # pip_value は1ロット（10万通貨）あたりの1pipの円価値
+    # 1通貨あたりの1pipの円価値 = pip_value / 100000
+    pip_value_per_unit = pip_value / 100000
+    max_loss = account_balance * risk_pct
+    units = max_loss / (sl_pips * pip_value_per_unit)
+    lot_1000 = max(1000, int(units / 1000) * 1000)  # 1000通貨単位に切り捨て
+    actual_loss = sl_pips * pip_value_per_unit * lot_1000
+
+    # 損切り価格の計算
+    sl_pips_rounded = round(sl_pips)
+
+    return {
+        'lot_units': lot_1000,
+        'lot': lot_1000 / 100000,
+        'sl_pips': sl_pips_rounded,
+        'max_loss': actual_loss,
+        'max_loss_pct': actual_loss / account_balance * 100,
+    }
+
+
+# ============================================================
 # 通知メッセージ作成
 # ============================================================
-def format_entry_message(pair: str, analysis: dict, action: dict, params: dict) -> str:
+def format_entry_message(pair: str, analysis: dict, action: dict, params: dict,
+                         account_balance: float = None) -> str:
     direction = '🔴 売り SELL' if action['action'] == 'ENTRY_SELL' else '🟢 買い BUY'
+
+    # ロット計算
+    lot_info = ""
+    if account_balance and account_balance > 0:
+        lc = calculate_lot(pair, params, account_balance)
+        # 損切り価格
+        price = analysis['price']
+        pip_size = 0.01 if pair.split('/')[1] == 'JPY' else 0.0001
+        if action['action'] == 'ENTRY_BUY':
+            sl_price = price - lc['sl_pips'] * pip_size
+        else:
+            sl_price = price + lc['sl_pips'] * pip_size
+
+        lot_info = f"""
+💰 推奨ロット: {lc['lot_units']:,}通貨
+損切り: {sl_price:.4f}（{lc['sl_pips']}pips）
+最大損失: {lc['max_loss']:,.0f}円（口座の{lc['max_loss_pct']:.1f}%）"""
+
     return f"""
 ━━━━━━━━━━━━━━━━
 📊 {pair} エントリー通知
@@ -311,9 +385,7 @@ def format_entry_message(pair: str, analysis: dict, action: dict, params: dict) 
 価格: {analysis['price']:.4f}
 30日MA: {analysis['ma']:.4f}
 Zスコア: {analysis['z']:+.2f}
-
-リスク: {params['risk_pct']}%
-損切りライン: Z=±{params['stop_z']}
+{lot_info}
 
 ⚠️ 手動でエントリーしてください
 """.strip()
@@ -429,7 +501,8 @@ def cmd_check():
 
         # アクションに応じた処理
         if action['action'] in ('ENTRY_BUY', 'ENTRY_SELL'):
-            msg = format_entry_message(pair_name, analysis, action, params)
+            account_balance = config.get('account_balance', 0)
+            msg = format_entry_message(pair_name, analysis, action, params, account_balance)
             notifications.append(msg)
 
             direction = 'BUY' if action['action'] == 'ENTRY_BUY' else 'SELL'
