@@ -106,7 +106,7 @@ def fetch_prices(pairs_config: dict, days: int = 90) -> pd.DataFrame:
     end = datetime.now().strftime('%Y-%m-%d')
     start = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
 
-    url = f"https://api.frankfurter.app/{start}..{end}?from=EUR&to=USD,GBP,JPY,AUD,NZD"
+    url = f"https://api.frankfurter.app/{start}..{end}?from=EUR&to=USD,GBP,JPY,AUD,NZD,CAD,CHF"
     try:
         r = requests.get(url, timeout=15)
         if r.status_code != 200:
@@ -120,12 +120,16 @@ def fetch_prices(pairs_config: dict, days: int = 90) -> pd.DataFrame:
             jpy = rates.get('JPY')
             aud = rates.get('AUD')
             nzd = rates.get('NZD')
+            cad = rates.get('CAD')
+            chf = rates.get('CHF')
             row = {'date': date_str}
             if usd: row['EUR/USD'] = usd
             if gbp: row['EUR/GBP'] = gbp
             if jpy: row['EUR/JPY'] = jpy
             if aud: row['EUR/AUD'] = aud
             if nzd: row['EUR/NZD'] = nzd
+            if cad: row['EUR/CAD'] = cad
+            if chf: row['EUR/CHF'] = chf
             if usd and gbp: row['GBP/USD'] = usd / gbp
             if usd and jpy: row['USD/JPY'] = jpy / usd
             if aud and nzd: row['AUD/NZD'] = nzd / aud
@@ -134,6 +138,17 @@ def fetch_prices(pairs_config: dict, days: int = 90) -> pd.DataFrame:
             if aud and usd: row['AUD/USD'] = usd / aud
             if nzd and usd: row['NZD/USD'] = usd / nzd
             if gbp and jpy: row['GBP/JPY'] = jpy / gbp
+            if usd and cad: row['USD/CAD'] = cad / usd
+            if gbp and cad: row['GBP/CAD'] = cad / gbp
+            if cad and jpy: row['CAD/JPY'] = jpy / cad
+            if aud and cad: row['AUD/CAD'] = cad / aud
+            if nzd and cad: row['NZD/CAD'] = cad / nzd
+            if cad and chf: row['CAD/CHF'] = chf / cad
+            if usd and chf: row['USD/CHF'] = chf / usd
+            if gbp and chf: row['GBP/CHF'] = chf / gbp
+            if chf and jpy: row['CHF/JPY'] = jpy / chf
+            if aud and chf: row['AUD/CHF'] = chf / aud
+            if nzd and chf: row['NZD/CHF'] = chf / nzd
             rows.append(row)
 
         df = pd.DataFrame(rows)
