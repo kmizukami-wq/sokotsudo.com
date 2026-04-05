@@ -401,13 +401,6 @@ def cmd_check():
     else:
         source = "日次 (ECB)"
 
-    # 前回と同じ価格ならスキップ（重複通知防止）
-    latest_prices_hash = str({p: round(data[p].iloc[-1], 5) for p in list(pairs_config.keys())[:3] if p in data.columns})
-    last_hash = state.get('last_prices_hash', '')
-    if latest_prices_hash == last_hash:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] 価格変化なし → スキップ")
-        return
-
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] シグナルチェック ({source})")
     print(f"  データ: {data.index[0].date()} ~ {data.index[-1].date()}")
 
@@ -468,14 +461,14 @@ def cmd_check():
             log_entry = f"[{datetime.now().isoformat()}] {msg}\n"
             with open(LOG_PATH, 'a') as f:
                 f.write(log_entry)
-
-    # 日次サマリー送信（条件マッチなしでも保有状況を通知）
-    if config.get('line', {}).get('send_daily_summary', True):
+        # シグナルと一緒にサマリーも送信
         summary = format_daily_summary(results)
         send_line(config, summary)
+    else:
+        print("  シグナルなし → 通知スキップ")
 
-    # 最終チェック価格を記録（重複防止）
-    state['last_prices_hash'] = latest_prices_hash
+    # 最終チェック時刻を記録
+    state['last_checked'] = datetime.now().isoformat()
 
     # 状態保存
     save_state(state)
