@@ -1,0 +1,68 @@
+{
+  "_comment": "Zスコア逆張り自動売買 設定ファイル",
+  "_comment2": "通貨ペアの追加: pairsに新しいエントリーを追加するだけ",
+  "_comment3": "パラメータ変更: 各ペアのwindow/entry_z/exit_z/stop_z/risk_pctを編集",
+
+  "global": {
+    "leverage_limit": 25,
+    "max_simultaneous_positions": 5,
+    "max_total_risk_pct": 50,
+    "check_time_utc": "21:00",
+    "check_time_jst": "06:00",
+    "data_source": "frankfurter",
+    "log_file": "trades.log"
+  },
+
+  "pairs": {
+    "EUR/GBP": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "pip_value": 0.0001,
+      "note": "最も安定。27年間勝率100%"
+    },
+    "EUR/USD": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "pip_value": 0.0001,
+      "note": "高流動性。スプレッド最小"
+    },
+    "EUR/JPY": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "pip_value": 0.01,
+      "note": "ボラティリティ高い。利益幅大きい"
+    },
+    "USD/JPY": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "pip_value": 0.01,
+      "note": "唯一損切り発生歴あり(27年で1回)"
+    },
+    "GBP/USD": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "pip_value": 0.0001,
+      "note": "ボラ高め。EUR/GBPと利益源重複注意"
+    }
+  }
+}
