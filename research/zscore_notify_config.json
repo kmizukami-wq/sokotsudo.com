@@ -1,0 +1,64 @@
+{
+  "_setup_guide": [
+    "1. https://developers.line.biz/ にログイン",
+    "2. プロバイダー作成 → Messaging APIチャネル作成",
+    "3. チャネルアクセストークン（長期）を発行 → channel_access_token に設定",
+    "4. Basic settings → Your user ID → user_id に設定",
+    "5. 作成したBotをLINEで友だち追加",
+    "6. python zscore_notify.py test で通知テスト"
+  ],
+
+  "line": {
+    "channel_access_token": "YOUR_CHANNEL_ACCESS_TOKEN",
+    "user_id": "YOUR_USER_ID",
+    "send_daily_summary": true
+  },
+
+  "pairs": {
+    "EUR/GBP": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "note": "最安定。27年勝率100%"
+    },
+    "EUR/JPY": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "note": "ボラ高。利益幅大"
+    },
+    "GBP/USD": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "note": "安定"
+    },
+    "USD/JPY": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "note": "27年で損切1回あり"
+    },
+    "EUR/USD": {
+      "enabled": true,
+      "window": 30,
+      "entry_z": 1.5,
+      "exit_z": 0.5,
+      "stop_z": 4.0,
+      "risk_pct": 15,
+      "note": "最も流動性高い"
+    }
+  }
+}
