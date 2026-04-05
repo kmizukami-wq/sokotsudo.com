@@ -345,7 +345,15 @@ def cmd_check():
         print("[ERROR] データ取得失敗")
         return
 
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] シグナルチェック開始")
+    latest_date = data.index[-1].strftime('%Y-%m-%d')
+    last_checked_date = state.get('last_checked_date', '')
+
+    # レートが前回と同じならスキップ（重複通知防止）
+    if latest_date == last_checked_date:
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] レート変化なし（{latest_date}）→ スキップ")
+        return
+
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] 新レート検出: {latest_date}")
     print(f"  データ: {data.index[0].date()} ~ {data.index[-1].date()}")
 
     results = []
@@ -376,7 +384,6 @@ def cmd_check():
             msg = format_entry_message(pair_name, analysis, action, params)
             notifications.append(msg)
 
-            # ポジション状態を記録
             direction = 'BUY' if action['action'] == 'ENTRY_BUY' else 'SELL'
             state.setdefault('positions', {})[pair_name] = {
                 'direction': direction,
@@ -390,7 +397,6 @@ def cmd_check():
             msg = format_exit_message(pair_name, analysis, action, current_position)
             notifications.append(msg)
 
-            # ポジション状態をクリア
             state.get('positions', {}).pop(pair_name, None)
             print(f"  🔔 {pair_name}: {action['message']}")
 
@@ -400,18 +406,21 @@ def cmd_check():
         else:
             print(f"  ⚪ {pair_name}: {action['message']}")
 
-    # LINE送信
+    # LINE送信（シグナルがある場合のみ）
     if notifications:
         for msg in notifications:
             send_line(config, msg)
             log_entry = f"[{datetime.now().isoformat()}] {msg}\n"
             with open(LOG_PATH, 'a') as f:
                 f.write(log_entry)
-    else:
-        # アクションなしの場合、日次サマリーだけ送信（設定で切替可能）
-        if config.get('line', {}).get('send_daily_summary', True):
-            summary = format_daily_summary(results)
-            send_line(config, summary)
+
+    # 日次サマリー送信（条件マッチなしでも保有状況を通知）
+    if config.get('line', {}).get('send_daily_summary', True):
+        summary = format_daily_summary(results)
+        send_line(config, summary)
+
+    # 最終チェック日を記録（重複防止）
+    state['last_checked_date'] = latest_date
 
     # 状態保存
     save_state(state)
