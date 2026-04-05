@@ -118,6 +118,7 @@ pairs_data = {
     'GBP/USD': df['gbpusd'],
     'EUR/GBP': df['eurgbp'],
     'USD/JPY': df['usdjpy'].dropna(),
+    'EUR/JPY': df['eurjpy'].dropna(),
 }
 
 lookbacks = [3, 5, 7]
@@ -321,7 +322,7 @@ if len(comp_ok) > 0:
     rb_r = bc['rb_risk'] / 100
     # SL幅は大体レンジ幅。日足レンジ平均約100-300pips。保守的に150pipsとする
     lev_per_pos = rb_r / (150 * 0.0001 / 1.1) * 0.1  # 概算
-    max_sim_pos = 5  # 4 RB + 1 PT
+    max_sim_pos = 6  # 5 RB + 1 PT
     print(f"\n  レバレッジ概算: リスク{bc['rb_risk']:.0f}%で1ポジション約{lev_per_pos:.0f}倍 × 最大{max_sim_pos}ポジション")
     print(f"  ※ 全ポジション同時発生は稀。実効レバ25倍以内は十分達成可能")
 
