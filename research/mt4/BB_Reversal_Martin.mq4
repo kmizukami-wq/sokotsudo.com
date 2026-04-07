@@ -183,9 +183,9 @@ double GetMartinMultiplier()
 //+------------------------------------------------------------------+
 //| ロットサイズ計算                                                  |
 //+------------------------------------------------------------------+
-double CalcLotSize(double slPoints)
+double CalcLotSize(double slDist)
 {
-   if(slPoints <= 0) return 0.01;
+   if(slDist <= 0) return 0.01;
 
    double equity     = AccountEquity();
    double riskAmount = equity * RiskPercent / 100.0;
@@ -198,7 +198,13 @@ double CalcLotSize(double slPoints)
 
    if(tickValue <= 0 || tickSize <= 0) return minLot;
 
-   double lots = (riskAmount * martinMult) / (slPoints / tickSize * tickValue);
+   // SL金額/lot = slDist / tickSize * tickValue
+   double slCostPerLot = slDist / tickSize * tickValue;
+   double lots = (riskAmount * martinMult) / slCostPerLot;
+
+   Print("[DEBUG] LotCalc: equity=", equity, " risk=", riskAmount, " martin=", martinMult,
+         " slDist=", DoubleToString(slDist, 5), " slCost/lot=", DoubleToString(slCostPerLot, 2),
+         " raw_lots=", DoubleToString(lots, 4));
 
    // ロットステップに合わせて切り捨て
    lots = MathFloor(lots / lotStep) * lotStep;
@@ -585,9 +591,7 @@ void TryEntry()
    double slDist = atr * slMult;
    double tpDist = slDist * RR_Ratio;
 
-   // SLをポイントに変換
-   double slPoints = slDist / Point;
-   double lots = CalcLotSize(slPoints);
+   double lots = CalcLotSize(slDist);
    if(lots <= 0) return;
 
    double entryPrice, slPrice, tpPrice;
