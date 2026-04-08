@@ -32,9 +32,9 @@ PAIRS = {
 }
 
 CONFIGS = {
+    'BB 2.0σ': {'bb_sigma': 2.0, 'fbb_sigma': 2.0},
     'BB 2.5σ（現行）': {'bb_sigma': 2.5, 'fbb_sigma': 2.0},
     'BB 3.0σ': {'bb_sigma': 3.0, 'fbb_sigma': 2.0},
-    'BB 3.0σ + FBB 2.5σ': {'bb_sigma': 3.0, 'fbb_sigma': 2.5},
 }
 
 # 緩和A RSI条件
@@ -53,17 +53,20 @@ def calc_indicators(df, bb_sigma, fbb_sigma):
     df['SMA50'] = pd.Series(c).rolling(50).mean().values
     df['SMA20'] = pd.Series(c).rolling(20).mean().values
     sma20 = pd.Series(c).rolling(20).mean()
-    std20 = pd.Series(c).rolling(20).std()
+    std20 = pd.Series(c).rolling(20).std(ddof=0)  # MT4準拠: 母集団標準偏差
     df['BB_upper'] = (sma20 + bb_sigma * std20).values
     df['BB_lower'] = (sma20 - bb_sigma * std20).values
     sma10 = pd.Series(c).rolling(10).mean()
-    std10 = pd.Series(c).rolling(10).std()
+    std10 = pd.Series(c).rolling(10).std(ddof=0)  # MT4準拠
     df['FBB_upper'] = (sma10 + fbb_sigma * std10).values
     df['FBB_lower'] = (sma10 - fbb_sigma * std10).values
+    # RSI: MT4準拠 Wilder EWM方式
     delta = pd.Series(c).diff()
-    gain = delta.clip(lower=0).rolling(10).mean()
-    loss = (-delta.clip(upper=0)).rolling(10).mean()
-    rs = gain / loss.replace(0, np.nan)
+    gain = delta.clip(lower=0)
+    loss = (-delta.clip(upper=0))
+    avg_gain = gain.ewm(alpha=1.0/10, min_periods=10, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1.0/10, min_periods=10, adjust=False).mean()
+    rs = avg_gain / avg_loss.replace(0, np.nan)
     df['RSI'] = (100 - 100 / (1 + rs)).values
     tr = np.maximum(h - l, np.maximum(abs(h - np.roll(c, 1)), abs(l - np.roll(c, 1))))
     tr[0] = h[0] - l[0]
