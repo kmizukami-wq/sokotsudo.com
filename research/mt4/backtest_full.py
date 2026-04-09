@@ -34,6 +34,8 @@ PAIRS = {
                "spread": 0.5, "tick_value": 100},
     "EURUSD": {"base": 1.085, "vol": 0.00028, "pip": 0.0001, "pip_mult": 10000,
                "spread": 0.3, "tick_value": 150},
+    "AUDUSD": {"base": 0.653, "vol": 0.00030, "pip": 0.0001, "pip_mult": 10000,
+               "spread": 0.5, "tick_value": 150},
 }
 
 def generate_data(pair_name, cfg, months=12, seed=None):
