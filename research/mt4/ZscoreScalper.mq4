@@ -12,6 +12,7 @@ input double EntryZ      = 0.51;   // エントリーZ閾値
 input double ExitZ       = 0.5;    // 決済Z閾値
 input double StopZ       = 6.0;    // 損切りZ閾値
 input double TimeoutH    = 2.0;    // タイムアウト（時間）
+input int    TPpips      = 15;     // 利確（pips）0=無効
 input int    SLpips      = 15;     // 損切り（pips）0=無効
 input double LotSize     = 0.1;    // ロットサイズ（1万通貨=0.1）
 input int    MagicNumber = 20260411; // マジックナンバー
@@ -254,8 +255,8 @@ void OnTick()
 
    int pos = GetCurrentPosition();
 
-   //=== SL判定: 毎ティック（即時損切り） ===
-   if(pos != 0 && SLpips > 0)
+   //=== TP/SL判定: 毎ティック ===
+   if(pos != 0 && (TPpips > 0 || SLpips > 0))
    {
       double entryPrice = GetEntryPrice();
       double currentPrice = MarketInfo(Symbol(), MODE_BID);
@@ -263,7 +264,17 @@ void OnTick()
 
       double unrealizedPips = (currentPrice - entryPrice) * pos / pipSize;
 
-      if(unrealizedPips <= -SLpips)
+      // TP利確
+      if(TPpips > 0 && unrealizedPips >= TPpips)
+      {
+         Print("TP利確: ", Symbol(), " +", DoubleToStr(unrealizedPips, 1),
+               "pips @", DoubleToStr(currentPrice, (int)MarketInfo(Symbol(), MODE_DIGITS)));
+         ClosePosition();
+         return;
+      }
+
+      // SL損切り
+      if(SLpips > 0 && unrealizedPips <= -SLpips)
       {
          Print("SL損切り: ", Symbol(), " ", DoubleToStr(unrealizedPips, 1),
                "pips @", DoubleToStr(currentPrice, (int)MarketInfo(Symbol(), MODE_DIGITS)));
