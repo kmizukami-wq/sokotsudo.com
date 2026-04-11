@@ -174,7 +174,7 @@ bool ClosePosition()
             else
                price = MarketInfo(Symbol(), MODE_ASK);
 
-            bool result = OrderClose(OrderTicket(), OrderLots(), price, Slippage, clrNone);
+            bool result = OrderClose(OrderTicket(), OrderLots(), price, Slippage, CLR_NONE);
             if(!result)
                Print("決済エラー: ", GetLastError(), " Ticket=", OrderTicket());
             return(result);
