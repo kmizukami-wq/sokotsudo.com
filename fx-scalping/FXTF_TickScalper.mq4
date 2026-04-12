@@ -38,9 +38,13 @@ input int    InpEMASlow        = 60;     // EMA Slow (M1)
 
 input string _sep3_            = "───── Risk Guard ─────";
 input double InpMaxUnits       = 10000;  // ランク1上限 (手数料0円枠)
-input bool   InpTradeOnlyEAHrs = false;  // 取引時間帯制限
-input int    InpStartHour      = 9;      // 開始(0-23)
-input int    InpEndHour        = 24;     // 終了(0-24)
+input double InpMaxSpreadPoints= 2;      // 許容最大スプレッド(point)。超過時エントリ停止
+input bool   InpSkipTokyoMorn  = true;   // 日本時間6-9時 (広スプレッド帯) を除外
+input bool   InpSkipNYNewsHrs  = true;   // 日本時間21-24時 (NY開場/指標帯) を除外
+input int    InpJSTFromBroker  = 7;      // JST = broker時刻 + N時間 (冬7 / 夏6)
+input bool   InpTradeOnlyEAHrs = false;  // 追加の取引許可時間帯
+input int    InpStartHour      = 9;      // 開始(0-23 JST)
+input int    InpEndHour        = 24;     // 終了(0-24 JST)
 input bool   InpVerbose        = false;  // ログ詳細出力
 
 //--- グローバル状態
@@ -82,15 +86,51 @@ int OnInit()
 void OnDeinit(const int reason) {}
 
 //+------------------------------------------------------------------+
+//| JST時刻を取得 (brokerTime + InpJSTFromBroker)                    |
+//+------------------------------------------------------------------+
+int GetJSTHour()
+{
+   int h = TimeHour(TimeCurrent()) + InpJSTFromBroker;
+   h = (h % 24 + 24) % 24;
+   return h;
+}
+
+//+------------------------------------------------------------------+
 //| 時間帯フィルタ                                                   |
 //+------------------------------------------------------------------+
 bool IsTradeHour()
 {
-   if(!InpTradeOnlyEAHrs) return true;
-   int h = TimeHour(TimeCurrent());
-   if(InpStartHour <= InpEndHour)
-      return (h >= InpStartHour && h < InpEndHour);
-   return (h >= InpStartHour || h < InpEndHour);
+   int jstH = GetJSTHour();
+
+   // 6-9 JST 除外 (Tokyo fix前後の広スプレッド帯)
+   if(InpSkipTokyoMorn && jstH >= 6 && jstH < 9) return false;
+
+   // 21-24 JST 除外 (NY開場+米指標多発帯)
+   if(InpSkipNYNewsHrs && jstH >= 21 && jstH < 24) return false;
+
+   // 追加の取引許可時間帯
+   if(InpTradeOnlyEAHrs)
+   {
+      if(InpStartHour <= InpEndHour)
+         return (jstH >= InpStartHour && jstH < InpEndHour);
+      return (jstH >= InpStartHour || jstH < InpEndHour);
+   }
+   return true;
+}
+
+//+------------------------------------------------------------------+
+//| 現在スプレッドチェック (point単位)                               |
+//+------------------------------------------------------------------+
+bool IsSpreadAcceptable()
+{
+   double spreadPoints = (Ask - Bid) / g_point;
+   if(spreadPoints > InpMaxSpreadPoints)
+   {
+      if(InpVerbose)
+         PrintFormat("Spread %.1fp > max %.1fp, skip entry", spreadPoints, InpMaxSpreadPoints);
+      return false;
+   }
+   return true;
 }
 
 //+------------------------------------------------------------------+
@@ -299,6 +339,7 @@ void OnTick()
    }
 
    if(!IsTradeHour()) return;
+   if(!IsSpreadAcceptable()) return;
 
    int side = 0;
    if(ShouldEnter(side))
