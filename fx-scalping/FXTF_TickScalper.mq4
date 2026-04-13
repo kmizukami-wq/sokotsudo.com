@@ -48,6 +48,11 @@ input int    InpEndHour        = 3;      // Custom end hour JST (exclusive); wra
 input bool   InpVerbose        = false;  // Verbose log output
 input bool   InpLogCSV         = false;  // Append diagnostics to MQL4/Files/TickScalp_<Symbol>.csv
 
+input string _sep4_            = "===== Multi-TF Edge =====";
+input bool   InpUseM5Confirm   = true;   // Require M5 EMA direction to match M1
+input int    InpEMAFastM5      = 20;     // M5 EMA fast period
+input int    InpEMASlowM5      = 60;     // M5 EMA slow period
+
 //--- グローバル状態
 double   g_recentMids[];       // 直近tickのmid
 int      g_recentCount = 0;
@@ -58,6 +63,9 @@ int      g_prevDirection = 0;  // DIR変化検出用 (UpdateDirection が比較)
 double   g_lastEmaFast = 0;    // 直近 UpdateDirection で読んだ emaF (ログ用)
 double   g_lastEmaSlow = 0;
 double   g_lastEmaSlopePip = 0;// emaF(bar1)-emaF(bar3) を pip 換算
+double   g_lastEmaFastM5 = 0;  // M5 EMA fast (ログ用)
+double   g_lastEmaSlowM5 = 0;  // M5 EMA slow
+int      g_directionM5   = 0;  // +1/-1/0 (M5 EMA gap 符号)
 datetime g_lastM1Time = 0;
 double   g_peakPip = 0;        // 現ポジションのピーク利益(pip)
 datetime g_entryTime = 0;
@@ -135,6 +143,9 @@ int OnInit()
                InpTriggerHits, InpTriggerWindow, InpEMAFast, InpEMASlow);
    PrintFormat("Execution: lots=%.2f slippage=%d maxSpread=%.1fp",
                InpLots, InpSlippage, InpMaxSpreadPoints);
+   PrintFormat("M5 confirm: %s EMA(%d)vs(%d)",
+               (InpUseM5Confirm ? "enabled" : "disabled"),
+               InpEMAFastM5, InpEMASlowM5);
 
    // CSV 診断ログ準備
    g_csvFile = StringConcatenate("TickScalp_", Symbol(), ".csv");
@@ -148,7 +159,7 @@ int OnInit()
          int hw = FileOpen(g_csvFile, FILE_CSV|FILE_WRITE|FILE_ANSI, ';');
          if(hw != INVALID_HANDLE)
          {
-            FileWriteString(hw, "timestamp;symbol;event;side;pip;holdSec;emaGap;emaSlope;hits;tickMove;spread\r\n");
+            FileWriteString(hw, "timestamp;symbol;event;side;pip;holdSec;emaGap;emaSlope;hits;tickMove;spread;m5Gap\r\n");
             FileClose(hw);
          }
       }
@@ -215,6 +226,11 @@ double ComputeEmaGapPip()
    return (g_lastEmaFast - g_lastEmaSlow) / g_pipSize;
 }
 
+double ComputeEmaGapPipM5()
+{
+   return (g_lastEmaFastM5 - g_lastEmaSlowM5) / g_pipSize;
+}
+
 double ComputeTickMovePip()
 {
    int n = InpTriggerWindow;
@@ -272,36 +288,50 @@ void UpdateDirection()
    double emaS  = iMA(Symbol(), PERIOD_M1, InpEMASlow, 0, MODE_EMA, PRICE_CLOSE, 1);
    g_lastEmaFast     = emaF1;
    g_lastEmaSlow     = emaS;
-   g_lastEmaSlopePip = (emaF1 - emaF3) / 2.0 / g_pipSize;  // bar あたりの pip 傾き
+   g_lastEmaSlopePip = (emaF1 - emaF3) / 2.0 / g_pipSize;
 
    g_prevDirection = g_direction;
    if(emaF1 > emaS)      g_direction =  1;
    else if(emaF1 < emaS) g_direction = -1;
    else                  g_direction =  0;
 
-   double gap = ComputeEmaGapPip();
+   // M5 方向も計算 (マルチTF確認用)
+   if(iBars(Symbol(), PERIOD_M5) >= InpEMASlowM5 + 2)
+   {
+      double emaF5 = iMA(Symbol(), PERIOD_M5, InpEMAFastM5, 0, MODE_EMA, PRICE_CLOSE, 1);
+      double emaS5 = iMA(Symbol(), PERIOD_M5, InpEMASlowM5, 0, MODE_EMA, PRICE_CLOSE, 1);
+      g_lastEmaFastM5 = emaF5;
+      g_lastEmaSlowM5 = emaS5;
+      if(emaF5 > emaS5)      g_directionM5 =  1;
+      else if(emaF5 < emaS5) g_directionM5 = -1;
+      else                   g_directionM5 =  0;
+   }
+
+   double gap   = ComputeEmaGapPip();
+   double gapM5 = ComputeEmaGapPipM5();
 
    // 方向が変わった時は常時ログ
    if(g_direction != g_prevDirection)
    {
-      PrintFormat("DIR %s->%s [%s] emaF=%.5f emaS=%.5f gap=%+.2fp slope=%+.2fp/bar",
+      PrintFormat("DIR %s->%s [%s] M1 gap=%+.2fp slope=%+.2fp/bar | M5 dir=%s gap=%+.2fp",
                   SideStr(g_prevDirection), SideStr(g_direction),
                   TimeToStr(m1, TIME_DATE|TIME_MINUTES),
-                  emaF1, emaS, gap, g_lastEmaSlopePip);
+                  gap, g_lastEmaSlopePip,
+                  SideStr(g_directionM5), gapM5);
       if(InpLogCSV)
       {
-         string line = StringFormat("%s;%s;DIR;%s;;;%+0.2f;%+0.2f;;;",
+         string line = StringFormat("%s;%s;DIR;%s;;;%+0.2f;%+0.2f;;;;%+0.2f",
                                     TimeToStr(TimeCurrent(), TIME_DATE|TIME_SECONDS),
                                     Symbol(), SideStr(g_direction),
-                                    gap, g_lastEmaSlopePip);
+                                    gap, g_lastEmaSlopePip, gapM5);
          LogCSV(line);
       }
    }
    else if(InpVerbose)
    {
-      PrintFormat("[%s] Dir=%s emaF=%.5f emaS=%.5f gap=%+.2fp slope=%+.2fp/bar",
+      PrintFormat("[%s] Dir=%s M1 gap=%+.2fp | M5 dir=%s gap=%+.2fp",
                   TimeToStr(m1, TIME_DATE|TIME_MINUTES), SideStr(g_direction),
-                  emaF1, emaS, gap, g_lastEmaSlopePip);
+                  gap, SideStr(g_directionM5), gapM5);
    }
 }
 
@@ -325,6 +355,15 @@ bool ShouldEnter(int &outSide)
    outSide = 0;
    if(g_direction == 0) return false;
    if(g_recentCount < InpTriggerWindow) return false;
+
+   // M5 マルチTF確認: M1 と M5 の方向が一致しない時はスキップ
+   if(InpUseM5Confirm && g_directionM5 != g_direction)
+   {
+      if(InpVerbose)
+         PrintFormat("Gate[M5] dirM1=%s dirM5=%s (mismatch, skip)",
+                     SideStr(g_direction), SideStr(g_directionM5));
+      return false;
+   }
 
    int hits = ComputeHits(g_direction);
    if(hits >= InpTriggerHits)
@@ -438,19 +477,22 @@ void OpenPosition(int side)
    g_entryTickMove = ComputeTickMovePip();
    g_entrySpread   = (Ask - Bid) / g_point;
 
-   PrintFormat("ENTRY %s @%.5f ticket=%d emaGap=%+.2fp slope=%+.2fp/bar hits=%d/%d tickMove=%+.2fp spread=%.1fp",
+   double m5Gap = ComputeEmaGapPipM5();
+
+   PrintFormat("ENTRY %s @%.5f ticket=%d emaGap=%+.2fp slope=%+.2fp/bar hits=%d/%d tickMove=%+.2fp spread=%.1fp m5Gap=%+.2fp",
                SideStr(side), price, ticket,
                g_entryEmaGap, g_entryEmaSlope,
                g_entryHits, InpTriggerWindow-1,
-               g_entryTickMove, g_entrySpread);
+               g_entryTickMove, g_entrySpread, m5Gap);
 
    if(InpLogCSV)
    {
-      string line = StringFormat("%s;%s;ENTRY;%s;;;%+0.2f;%+0.2f;%d;%+0.2f;%.1f",
+      string line = StringFormat("%s;%s;ENTRY;%s;;;%+0.2f;%+0.2f;%d;%+0.2f;%.1f;%+0.2f",
                                  TimeToStr(g_entryTime, TIME_DATE|TIME_SECONDS),
                                  Symbol(), SideStr(side),
                                  g_entryEmaGap, g_entryEmaSlope,
-                                 g_entryHits, g_entryTickMove, g_entrySpread);
+                                 g_entryHits, g_entryTickMove, g_entrySpread,
+                                 m5Gap);
       LogCSV(line);
    }
 }
@@ -491,12 +533,14 @@ void ClosePosition(int ticket, string reason)
    if(InpLogCSV)
    {
       string evt = "EXIT_" + reason;
-      string line = StringFormat("%s;%s;%s;%s;%+0.2f;%d;%+0.2f;%+0.2f;%d;%+0.2f;%.1f",
+      double m5Gap = ComputeEmaGapPipM5();
+      string line = StringFormat("%s;%s;%s;%s;%+0.2f;%d;%+0.2f;%+0.2f;%d;%+0.2f;%.1f;%+0.2f",
                                  TimeToStr(TimeCurrent(), TIME_DATE|TIME_SECONDS),
                                  Symbol(), evt, SideStr(side),
                                  pip, holdSec,
                                  g_entryEmaGap, g_entryEmaSlope,
-                                 g_entryHits, g_entryTickMove, g_entrySpread);
+                                 g_entryHits, g_entryTickMove, g_entrySpread,
+                                 m5Gap);
       LogCSV(line);
    }
    g_peakPip = 0;
