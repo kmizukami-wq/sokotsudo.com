@@ -5,67 +5,67 @@
 //|                                                                  |
 //| 数学的根拠:                                                      |
 //|   Lehmann (1990), Lo & MacKinlay (1990) が実証した              |
-//|   短期 (1秒〜数秒) リターンの負の自己相関 ρ(1) ≈ -0.05〜-0.15   |
+//|   短期リターンの負の自己相関 ρ(1) ≈ -0.05〜-0.15                |
 //|                                                                  |
-//| 戦略:                                                            |
-//|   1. 過去 InpReversalLookbackMs (例:1000ms) 内に                 |
+//| 戦略 (tick数ベース版・バックテスト対応):                         |
+//|   1. 過去 InpReversalLookbackTicks (例:10) tick で                |
 //|      |move| > InpReversalThresholdPip 動いたら逆方向にエントリ   |
 //|   2. 退出:                                                       |
-//|      - +InpTakeProfitPip 到達 (例: +0.5p)                       |
-//|      - -InpStopLossPip 到達 (例: -0.7p)                         |
-//|      - InpMaxHoldMs 経過 (例: 5000ms = 5秒)                     |
+//|      - +InpTakeProfitPip 到達                                    |
+//|      - -InpStopLossPip 到達                                      |
+//|      - InpMaxHoldSec 経過                                        |
 //|                                                                  |
 //| 重要: ゼロスプレッド前提。通常スプレッドでは絶対に勝てない       |
 //+------------------------------------------------------------------+
 #property copyright   "FXTF LehmannReversal"
 #property link        ""
-#property version     "1.00"
+#property version     "2.00"
 #property strict
 #property description "FXTF Rank1 zero-spread HFT mean-reversion (Lehmann 1990)"
 
 //--- Input parameters
-input double InpLots                  = 0.01;   // Lot size (0.01=100units / 0.10=1,000units)
-input int    InpMagicNumber           = 0;      // Magic (0 = auto-generate from Symbol, base 86000)
-input int    InpSlippage              = 0;      // Max slippage (points); 0 = strict
+input double InpLots                   = 0.01;  // Lot size (0.01=100units / 0.10=1,000units)
+input int    InpMagicNumber            = 0;     // Magic (0 = auto-generate from Symbol, base 86000)
+input int    InpSlippage               = 0;     // Max slippage (points); 0 = strict
 
-input string _sep1_                   = "===== Lehmann HFT Reversal =====";
-input int    InpReversalLookbackMs    = 1000;   // Lookback window (msec) for move detection
-input double InpReversalThresholdPip  = 0.5;    // Min move (pip) in lookback to trigger fade
-input double InpTakeProfitPip         = 0.5;    // Take profit (pip)
-input double InpStopLossPip           = 0.7;    // Stop loss (pip)
-input int    InpMaxHoldMs             = 5000;   // Max hold (msec)
-input int    InpMinIntervalMs         = 200;    // Min ms between consecutive entries (anti-spam)
-input int    InpTickBufferSize        = 1000;   // Ring buffer size (ticks)
+input string _sep1_                    = "===== Lehmann HFT Reversal =====";
+input int    InpReversalLookbackTicks  = 10;    // Lookback window (ticks) for move detection
+input double InpReversalThresholdPip   = 0.5;   // Min move (pip) in lookback to trigger fade
+input double InpTakeProfitPip          = 0.5;   // Take profit (pip)
+input double InpStopLossPip            = 0.7;   // Stop loss (pip)
+input int    InpMaxHoldSec             = 5;     // Max hold (seconds)
+input int    InpMinIntervalTicks       = 3;     // Min ticks between entries (anti-spam)
+input int    InpTickBufferSize         = 100;   // Ring buffer size (ticks)
 
-input string _sep2_                   = "===== Risk Guard =====";
-input double InpMaxUnits              = 10000;  // Rank-1 unit cap (0-fee tier)
-input double InpMaxSpreadPoints       = 2;      // Max allowed spread (points); strict for HFT
-input bool   InpSkipTokyoMorn         = false;  // Skip JST 06-09
-input bool   InpSkipNYNewsHrs         = false;  // Skip JST 21-24
-input int    InpJSTFromBroker         = 6;      // Broker -> JST offset (summer=6 / winter=7)
-input bool   InpTradeOnlyEAHrs        = true;   // Enable custom hours
-input int    InpStartHour             = 9;      // Start hour JST
-input int    InpEndHour               = 3;      // End hour JST (wraps)
-input bool   InpVerbose               = false;  // Verbose log
-input bool   InpLogCSV                = false;  // Append CSV to MQL4/Files/LehmannRev_<Symbol>.csv
+input string _sep2_                    = "===== Risk Guard =====";
+input double InpMaxUnits               = 10000; // Rank-1 unit cap (0-fee tier)
+input double InpMaxSpreadPoints        = 2;     // Max allowed spread (points)
+input bool   InpSkipTokyoMorn          = false; // Skip JST 06-09
+input bool   InpSkipNYNewsHrs          = false; // Skip JST 21-24
+input int    InpJSTFromBroker          = 6;     // Broker -> JST offset (summer=6 / winter=7)
+input bool   InpTradeOnlyEAHrs         = true;  // Enable custom hours
+input int    InpStartHour              = 9;     // Start hour JST
+input int    InpEndHour                = 3;     // End hour JST (wraps)
+input bool   InpVerbose                = false; // Verbose log
+input bool   InpLogCSV                 = false; // Append CSV to MQL4/Files/LehmannRev_<Symbol>.csv
 
-//--- Globals: tick ring buffer with timestamps
-double   g_tickMid[];        // mid price ring buffer
-uint     g_tickMs[];         // GetTickCount() at each tick
-int      g_tickHead   = 0;   // next write index
-int      g_tickCount  = 0;   // valid items
+//--- Globals: tick ring buffer (mid price only)
+double   g_tickMid[];
+int      g_tickHead       = 0;   // next write index
+int      g_tickCount      = 0;   // valid items
+long     g_totalTicks     = 0;   // monotonic tick counter (for min-interval)
 
 double   g_point;
 double   g_pipSize;
 int      g_effectiveMagic = 0;
 
 //--- Position state
-uint     g_entryMs        = 0;   // GetTickCount() at entry
+datetime g_entryTime      = 0;
 int      g_entrySide      = 0;
 double   g_entryPrice     = 0;
-double   g_entryMovePip   = 0;   // 検出時の move pip
-int      g_entryLookbackMs = 0;
-uint     g_lastEntryMs    = 0;   // 連続発火防止用
+double   g_entryMovePip   = 0;
+int      g_entryLookback  = 0;
+long     g_lastEntryTick  = -1000000;  // 初期値は遠い過去
 
 string   g_csvFile = "";
 
@@ -85,9 +85,6 @@ int AutoMagicFromSymbol()
    return 86000 + (hash % 9000);  // 86000〜94999 (TickScalper 77000-85999 と分離)
 }
 
-//+------------------------------------------------------------------+
-//| Side -> string                                                   |
-//+------------------------------------------------------------------+
 string SideStr(int s)
 {
    if(s > 0) return "BUY";
@@ -101,11 +98,11 @@ string SideStr(int s)
 int OnInit()
 {
    ArrayResize(g_tickMid, InpTickBufferSize);
-   ArrayResize(g_tickMs,  InpTickBufferSize);
    ArrayInitialize(g_tickMid, 0.0);
-   ArrayInitialize(g_tickMs,  0);
-   g_tickHead = 0;
-   g_tickCount = 0;
+   g_tickHead   = 0;
+   g_tickCount  = 0;
+   g_totalTicks = 0;
+   g_lastEntryTick = -1000000;
 
    g_point = Point;
    if(Digits == 3 || Digits == 5)
@@ -132,12 +129,13 @@ int OnInit()
    PrintFormat("Trade hours (JST): %02d:00 to %02d:00 (TradeOnly=%s)",
                InpStartHour, InpEndHour,
                (InpTradeOnlyEAHrs ? "true" : "false"));
-   PrintFormat("Strategy: lookback=%dms threshold=%.2fp TP=%.2fp SL=%.2fp maxHold=%dms",
-               InpReversalLookbackMs, InpReversalThresholdPip,
-               InpTakeProfitPip, InpStopLossPip, InpMaxHoldMs);
-   PrintFormat("Execution: lots=%.2f slippage=%d maxSpread=%.1fp minInterval=%dms",
-               InpLots, InpSlippage, InpMaxSpreadPoints, InpMinIntervalMs);
-   PrintFormat("WARNING: Designed for ZERO spread only. Do NOT use on standard spread accounts.");
+   PrintFormat("Strategy: lookback=%dticks threshold=%.2fp TP=%.2fp SL=%.2fp maxHold=%ds",
+               InpReversalLookbackTicks, InpReversalThresholdPip,
+               InpTakeProfitPip, InpStopLossPip, InpMaxHoldSec);
+   PrintFormat("Execution: lots=%.2f slippage=%d maxSpread=%.1fp minInterval=%dticks bufSize=%d",
+               InpLots, InpSlippage, InpMaxSpreadPoints,
+               InpMinIntervalTicks, InpTickBufferSize);
+   PrintFormat("NOTE: Tick-count based. Works in MT4 strategy tester. Zero spread assumed.");
 
    g_csvFile = StringConcatenate("LehmannRev_", Symbol(), ".csv");
    if(InpLogCSV)
@@ -150,7 +148,7 @@ int OnInit()
          int hw = FileOpen(g_csvFile, FILE_CSV|FILE_WRITE|FILE_ANSI, ';');
          if(hw != INVALID_HANDLE)
          {
-            FileWriteString(hw, "timestamp;symbol;event;side;pip;holdMs;movePip;lookbackMs;spread\r\n");
+            FileWriteString(hw, "timestamp;symbol;event;side;pip;holdSec;movePip;lookbackTicks;spread\r\n");
             FileClose(hw);
          }
       }
@@ -188,9 +186,6 @@ int GetJSTHour()
    return h;
 }
 
-//+------------------------------------------------------------------+
-//| Trade hour filter                                                |
-//+------------------------------------------------------------------+
 bool IsTradeHour()
 {
    int jstH = GetJSTHour();
@@ -205,9 +200,6 @@ bool IsTradeHour()
    return true;
 }
 
-//+------------------------------------------------------------------+
-//| Spread check                                                     |
-//+------------------------------------------------------------------+
 bool IsSpreadAcceptable()
 {
    double spreadPoints = (Ask - Bid) / g_point;
@@ -223,42 +215,25 @@ bool IsSpreadAcceptable()
 //+------------------------------------------------------------------+
 //| Push tick to ring buffer                                         |
 //+------------------------------------------------------------------+
-void PushTick(double mid, uint nowMs)
+void PushTick(double mid)
 {
    g_tickMid[g_tickHead] = mid;
-   g_tickMs[g_tickHead]  = nowMs;
    g_tickHead = (g_tickHead + 1) % InpTickBufferSize;
    if(g_tickCount < InpTickBufferSize) g_tickCount++;
+   g_totalTicks++;
 }
 
 //+------------------------------------------------------------------+
-//| Find mid price at approximately (nowMs - targetAgoMs)            |
-//| Returns 0 if not enough buffer history                           |
+//| Get mid price N ticks ago (0 = now, 1 = 1 tick ago, ...)         |
+//| Returns 0 if buffer has insufficient history                     |
 //+------------------------------------------------------------------+
-double GetMidAtMsAgo(uint nowMs, int targetAgoMs)
+double GetMidNTicksAgo(int nTicksAgo)
 {
-   if(g_tickCount < 2) return 0;
-   uint targetMs = nowMs - (uint)targetAgoMs;
-   // search backwards from head; find first tick with ms <= targetMs
-   for(int i = 1; i <= g_tickCount; i++)
-   {
-      int idx = (g_tickHead - i + InpTickBufferSize) % InpTickBufferSize;
-      if(g_tickMs[idx] <= targetMs)
-         return g_tickMid[idx];
-   }
-   // older than buffer; use oldest
-   int oldest = (g_tickHead - g_tickCount + InpTickBufferSize) % InpTickBufferSize;
-   return g_tickMid[oldest];
-}
-
-//+------------------------------------------------------------------+
-//| Compute move (pip) over last InpReversalLookbackMs               |
-//+------------------------------------------------------------------+
-double ComputeRecentMovePip(uint nowMs, double currentMid)
-{
-   double pastMid = GetMidAtMsAgo(nowMs, InpReversalLookbackMs);
-   if(pastMid <= 0) return 0;
-   return (currentMid - pastMid) / g_pipSize;
+   if(nTicksAgo < 0) return 0;
+   if(g_tickCount <= nTicksAgo) return 0;
+   // head-1 は最新 tick の index、head-1-N で N tick 前
+   int idx = (g_tickHead - 1 - nTicksAgo + InpTickBufferSize) % InpTickBufferSize;
+   return g_tickMid[idx];
 }
 
 //+------------------------------------------------------------------+
@@ -300,7 +275,7 @@ double SumSameDirectionUnits(int side)
 //+------------------------------------------------------------------+
 //| Open position                                                    |
 //+------------------------------------------------------------------+
-void OpenPosition(int side, double movePip, uint nowMs)
+void OpenPosition(int side, double movePip)
 {
    double contractSize = MarketInfo(Symbol(), MODE_LOTSIZE);
    double newUnits = InpLots * contractSize;
@@ -340,24 +315,24 @@ void OpenPosition(int side, double movePip, uint nowMs)
       return;
    }
 
-   g_entryMs       = nowMs;
+   g_entryTime     = TimeCurrent();
    g_entrySide     = side;
    g_entryPrice    = price;
    g_entryMovePip  = movePip;
-   g_entryLookbackMs = InpReversalLookbackMs;
-   g_lastEntryMs   = nowMs;
+   g_entryLookback = InpReversalLookbackTicks;
+   g_lastEntryTick = g_totalTicks;
 
    double spread = (Ask - Bid) / g_point;
-   PrintFormat("ENTRY %s @%.5f ticket=%d movePip=%+.2fp lookback=%dms spread=%.1fp",
+   PrintFormat("ENTRY %s @%.5f ticket=%d movePip=%+.2fp lookback=%dticks spread=%.1fp",
                SideStr(side), price, ticket, movePip,
-               InpReversalLookbackMs, spread);
+               InpReversalLookbackTicks, spread);
 
    if(InpLogCSV)
    {
       string line = StringFormat("%s;%s;ENTRY;%s;;;%+0.2f;%d;%.1f",
-                                 TimeToStr(TimeCurrent(), TIME_DATE|TIME_SECONDS),
+                                 TimeToStr(g_entryTime, TIME_DATE|TIME_SECONDS),
                                  Symbol(), SideStr(side),
-                                 movePip, InpReversalLookbackMs, spread);
+                                 movePip, InpReversalLookbackTicks, spread);
       LogCSV(line);
    }
 }
@@ -377,13 +352,13 @@ double CurrentPipPnL(int ticket)
 //+------------------------------------------------------------------+
 //| Close position                                                   |
 //+------------------------------------------------------------------+
-void ClosePosition(int ticket, string reason, uint nowMs)
+void ClosePosition(int ticket, string reason)
 {
    if(!OrderSelect(ticket, SELECT_BY_TICKET)) return;
    double price = (OrderType() == OP_BUY) ? Bid : Ask;
    double pip   = CurrentPipPnL(ticket);
    int side     = (OrderType() == OP_BUY) ? 1 : -1;
-   int holdMs   = (int)(nowMs - g_entryMs);
+   int holdSec  = (int)(TimeCurrent() - g_entryTime);
 
    bool ok = OrderClose(ticket, OrderLots(), price, InpSlippage, clrNONE);
    if(!ok)
@@ -391,9 +366,9 @@ void ClosePosition(int ticket, string reason, uint nowMs)
       PrintFormat("OrderClose failed err=%d", GetLastError());
       return;
    }
-   PrintFormat("EXIT[%s] side=%s pip=%+.2f holdMs=%d ticket=%d (entry move=%+.2fp lookback=%dms)",
-               reason, SideStr(side), pip, holdMs, ticket,
-               g_entryMovePip, g_entryLookbackMs);
+   PrintFormat("EXIT[%s] side=%s pip=%+.2f holdSec=%d ticket=%d (entry move=%+.2fp lookback=%dticks)",
+               reason, SideStr(side), pip, holdSec, ticket,
+               g_entryMovePip, g_entryLookback);
 
    if(InpLogCSV)
    {
@@ -402,8 +377,8 @@ void ClosePosition(int ticket, string reason, uint nowMs)
       string line = StringFormat("%s;%s;%s;%s;%+0.2f;%d;%+0.2f;%d;%.1f",
                                  TimeToStr(TimeCurrent(), TIME_DATE|TIME_SECONDS),
                                  Symbol(), evt, SideStr(side),
-                                 pip, holdMs,
-                                 g_entryMovePip, g_entryLookbackMs, spread);
+                                 pip, holdSec,
+                                 g_entryMovePip, g_entryLookback, spread);
       LogCSV(line);
    }
 }
@@ -411,27 +386,27 @@ void ClosePosition(int ticket, string reason, uint nowMs)
 //+------------------------------------------------------------------+
 //| Manage open position (TP / SL / timeout)                         |
 //+------------------------------------------------------------------+
-void ManagePosition(int ticket, uint nowMs)
+void ManagePosition(int ticket)
 {
    double pip = CurrentPipPnL(ticket);
-   int holdMs = (int)(nowMs - g_entryMs);
+   int holdSec = (int)(TimeCurrent() - g_entryTime);
 
    // 利確
    if(pip >= InpTakeProfitPip)
    {
-      ClosePosition(ticket, "TP", nowMs);
+      ClosePosition(ticket, "TP");
       return;
    }
    // 損切り
    if(pip <= -InpStopLossPip)
    {
-      ClosePosition(ticket, "SL", nowMs);
+      ClosePosition(ticket, "SL");
       return;
    }
    // タイムアウト
-   if(holdMs >= InpMaxHoldMs)
+   if(holdSec >= InpMaxHoldSec)
    {
-      ClosePosition(ticket, "TIMEOUT", nowMs);
+      ClosePosition(ticket, "TIMEOUT");
       return;
    }
 }
@@ -441,15 +416,14 @@ void ManagePosition(int ticket, uint nowMs)
 //+------------------------------------------------------------------+
 void OnTick()
 {
-   uint nowMs = GetTickCount();
    double mid = (Bid + Ask) / 2.0;
-   PushTick(mid, nowMs);
+   PushTick(mid);
 
    // 既存ポジション管理
    int ticket = FindMyPosition();
    if(ticket >= 0)
    {
-      ManagePosition(ticket, nowMs);
+      ManagePosition(ticket);
       return;
    }
 
@@ -457,36 +431,27 @@ void OnTick()
    if(!IsTradeHour()) return;
    if(!IsSpreadAcceptable()) return;
 
-   // 連続発火防止
-   if(g_lastEntryMs > 0 && (nowMs - g_lastEntryMs) < (uint)InpMinIntervalMs)
+   // 連続発火防止 (tick数カウンタで判定)
+   if((g_totalTicks - g_lastEntryTick) < InpMinIntervalTicks)
       return;
 
-   // バッファ充填チェック (lookback分の履歴が必要)
-   if(g_tickCount < 5) return;
+   // バッファ充填チェック
+   if(g_tickCount <= InpReversalLookbackTicks) return;
 
    // Lehmann シグナル評価
-   double movePip = ComputeRecentMovePip(nowMs, mid);
-   if(movePip == 0) return;
+   double pastMid = GetMidNTicksAgo(InpReversalLookbackTicks);
+   if(pastMid <= 0) return;
+   double movePip = (mid - pastMid) / g_pipSize;
 
    if(movePip > InpReversalThresholdPip)
    {
       // 急騰直後 → SELL (Lehmann reversal)
-      OpenPosition(-1, movePip, nowMs);
+      OpenPosition(-1, movePip);
    }
    else if(movePip < -InpReversalThresholdPip)
    {
       // 急落直後 → BUY
-      OpenPosition(+1, movePip, nowMs);
-   }
-   else if(InpVerbose)
-   {
-      static uint lastVerbose = 0;
-      if(nowMs - lastVerbose > 5000)  // 5秒に1回だけ
-      {
-         PrintFormat("[gate] movePip=%+.2fp (need |%+.2f|>%.2f)",
-                     movePip, movePip, InpReversalThresholdPip);
-         lastVerbose = nowMs;
-      }
+      OpenPosition(+1, movePip);
    }
 }
 
