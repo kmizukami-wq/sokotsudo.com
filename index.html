@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -360,7 +361,7 @@ body.drawer-open { overflow: hidden; }
 .hero-grid { position: absolute; inset: 0; opacity: 0.04; background-image: linear-gradient(rgba(201,162,39,1) 1px, transparent 1px), linear-gradient(90deg, rgba(201,162,39,1) 1px, transparent 1px); background-size: 40px 40px; }
 .hero-content { position: relative; z-index: 2; text-align: center; padding: 60px 24px; animation: fadeUp 1s ease both; }
 .hero-eyebrow { font-size: 11px; letter-spacing: 0.6em; color: var(--gold); margin-bottom: 32px; text-transform: uppercase; }
-.hero-title { font-family: var(--serif); font-size: clamp(22px, 5.5vw, 72px); font-weight: 300; color: var(--white); line-height: 1.3; margin-bottom: 16px; letter-spacing: 0.05em; white-space: nowrap; }
+.hero-title { font-family: var(--serif); font-size: clamp(24px, 5.5vw, 72px); font-weight: 300; color: var(--white); line-height: 1.4; margin-bottom: 16px; letter-spacing: 0.05em; word-break: keep-all; overflow-wrap: anywhere; }
 .hero-title strong { font-weight: 900; color: var(--gold-light); display: block; }
 .hero-sub { font-size: 15px; color: rgba(255,255,255,0.55); margin-bottom: 48px; line-height: 1.8; letter-spacing: 0.05em; }
 .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
@@ -392,7 +393,7 @@ section { padding: 96px 40px; }
 .solution-list li::before { content: '◎'; color: var(--gold); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
 .arrow-mid { text-align: center; font-size: 28px; color: var(--gold); margin: 16px 0; }
 .about-text .section-lead { max-width: 100%; }
-.about-copy { font-family: var(--serif); font-size: clamp(12px, 3.5vw, 22px); white-space: nowrap; overflow-wrap: normal; font-weight: 700; color: var(--navy2); line-height: 1.6; margin-bottom: 24px; border-left: 3px solid var(--gold); padding-left: 20px; }
+.about-copy { font-family: var(--serif); font-size: clamp(16px, 3.5vw, 22px); word-break: keep-all; overflow-wrap: anywhere; font-weight: 700; color: var(--navy2); line-height: 1.6; margin-bottom: 24px; border-left: 3px solid var(--gold); padding-left: 20px; }
 
 /* SEARCH */
 #search { background: var(--white); }
@@ -451,24 +452,7 @@ section { padding: 96px 40px; }
 .loc-card:hover, .loc-card.selected { border-color: var(--gold); background: var(--gold-pale); }
 .loc-name { font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--navy2); margin-bottom: 4px; }
 .loc-area { font-size: 12px; color: var(--muted); }
-.cal-wrap { background: var(--white); border: 1px solid #e0ddd8; border-radius: 4px; overflow: hidden; max-width: 420px; }
-.cal-header { background: var(--navy2); color: var(--white); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
-.cal-header button { background: none; border: none; color: var(--gold); cursor: pointer; font-size: 18px; }
-.cal-month { font-family: var(--serif); font-size: 16px; font-weight: 700; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; }
-.cal-day-label { text-align: center; padding: 10px 4px; font-size: 11px; color: var(--muted); border-bottom: 1px solid #f0ece6; }
-.cal-day { text-align: center; padding: 10px 4px; font-size: 13px; cursor: pointer; transition: background 0.15s; position: relative; }
-.cal-day:hover { background: var(--gold-pale); }
-.cal-day.available::after { content: '●'; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 6px; color: var(--gold); }
-.cal-day.selected { background: var(--navy2); color: var(--white); border-radius: 2px; }
-.cal-day.today { font-weight: 700; color: var(--gold); }
-.cal-day.empty { cursor: default; }
-.cal-day.disabled { color: #ccc; cursor: default; }
-.time-slots { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
-.time-slot { padding: 8px 20px; border: 1px solid #e0ddd8; border-radius: 2px; font-size: 13px; cursor: pointer; transition: all 0.2s; background: var(--white); }
-.time-slot:hover { border-color: var(--gold); color: var(--gold); }
-.time-slot.selected { background: var(--navy2); color: var(--white); border-color: var(--navy2); }
-.time-slot.full { color: #ccc; cursor: not-allowed; }
+.cal-wrap { display: none; }
 .vform { max-width: 560px; }
 .vform-row { margin-bottom: 16px; }
 .vform-row label { display: block; font-size: 11px; letter-spacing: 0.2em; color: var(--muted); margin-bottom: 6px; }
@@ -728,7 +712,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
             <li>健康の問題でお参りが難しい</li>
           </ul>
           <div class="arrow-mid">▼</div>
-          <div class="about-card-label" style="color:#4ecdc4;">AFTER — 送骨堂の解決策</div>
+          <div class="about-card-label">AFTER — 送骨堂の解決策</div>
           <ul class="solution-list">
             <li>ご遺骨をご自宅や施設へお届け（一時帰宅）</li>
             <li>希望期間後に永代供養されます</li>
@@ -819,9 +803,9 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
         <label style="font-size:11px;letter-spacing:0.2em;color:var(--muted);display:block;margin-bottom:12px;">契約金（上限）</label>
         <input type="range" min="90000" max="300000" step="10000" value="150000" style="width:100%;accent-color:var(--gold);margin-bottom:8px;" id="priceRange" oninput="document.getElementById('priceVal').textContent=Number(this.value).toLocaleString();updateResults()">
         <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);">
-          <span>¥90,000〜</span>
+          <span id="priceMinLabel">¥90,000〜</span>
           <span style="color:var(--gold);font-weight:700;">〜¥<span id="priceVal">150,000</span></span>
-          <span>¥300,000〜</span>
+          <span id="priceMaxLabel">¥300,000</span>
         </div>
       </div>
       <button class="btn-primary" onclick="updateResults()">検索する</button>
@@ -911,7 +895,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
       </div>
       <div class="vstep" onclick="switchVisit(1)">
         <div class="vstep-num">STEP 02</div>
-        <div class="vstep-title">日程・時間を選択</div>
+        <div class="vstep-title">希望日時を入力</div>
       </div>
       <div class="vstep" onclick="switchVisit(2)">
         <div class="vstep-num">STEP 03</div>
@@ -939,38 +923,55 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
           <div class="loc-area">東京都中央区</div>
         </div>
       </div>
-      <button class="btn-primary" onclick="switchVisit(1)">次へ：日程を選ぶ →</button>
+      <button class="btn-primary" onclick="nextFromLoc()">次へ：希望日時を入力 →</button>
     </div>
 
     <div id="vstep1" class="visit-panel">
-      <h3 style="font-family:var(--serif);font-size:18px;color:var(--navy2);margin-bottom:20px;">ご希望の日時をお選びください</h3>
-      <div style="display:grid;grid-template-columns:auto 1fr;gap:40px;align-items:start;flex-wrap:wrap;">
-        <div class="cal-wrap">
-          <div class="cal-header">
-            <button onclick="changeMonth(-1)">◀</button>
-            <div class="cal-month" id="calMonth">2026年3月</div>
-            <button onclick="changeMonth(1)">▶</button>
-          </div>
-          <div class="cal-grid" id="calGrid"></div>
-        </div>
-        <div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:12px;letter-spacing:0.1em;">● 空き日程</div>
-          <div id="timeSlots" style="display:none;">
-            <div style="font-size:13px;font-weight:700;color:var(--navy2);margin-bottom:12px;" id="selectedDateLabel"></div>
-            <div class="time-slots">
-              <div class="time-slot" onclick="selectTime(this)">10:00</div>
-              <div class="time-slot" onclick="selectTime(this)">11:00</div>
-              <div class="time-slot full">13:00 満</div>
-              <div class="time-slot" onclick="selectTime(this)">14:00</div>
-              <div class="time-slot" onclick="selectTime(this)">15:00</div>
-              <div class="time-slot" onclick="selectTime(this)">16:00</div>
-            </div>
+      <h3 style="font-family:var(--serif);font-size:18px;color:var(--navy2);margin-bottom:8px;">ご希望の日時をご入力ください</h3>
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:24px;">
+        ご希望の日時をご記入ください。内容確認のうえ、担当者より調整のご連絡を差し上げます。<br>
+        受付時間：毎日 10:00〜17:00（年中無休）
+      </p>
+      <div class="vform">
+        <div class="vform-row">
+          <label>第1希望 <span>必須</span></label>
+          <div class="vform-row2">
+            <input class="vform-input" type="date" id="visitDate1" min="" style="flex:1;">
+            <select class="vform-select" id="visitTime1">
+              <option value="">時間帯を選択</option>
+              <option value="10:00">10:00</option>
+              <option value="11:00">11:00</option>
+              <option value="13:00">13:00</option>
+              <option value="14:00">14:00</option>
+              <option value="15:00">15:00</option>
+              <option value="16:00">16:00</option>
+            </select>
           </div>
         </div>
+        <div class="vform-row">
+          <label>第2希望 <span style="color:var(--muted);">任意</span></label>
+          <div class="vform-row2">
+            <input class="vform-input" type="date" id="visitDate2" min="">
+            <select class="vform-select" id="visitTime2">
+              <option value="">時間帯を選択</option>
+              <option value="10:00">10:00</option>
+              <option value="11:00">11:00</option>
+              <option value="13:00">13:00</option>
+              <option value="14:00">14:00</option>
+              <option value="15:00">15:00</option>
+              <option value="16:00">16:00</option>
+            </select>
+          </div>
+        </div>
+        <div class="vform-row">
+          <label>ご要望・ご質問 <span style="color:var(--muted);">任意</span></label>
+          <textarea class="vform-input" id="visitNote" rows="3" style="min-height:80px;resize:vertical;" placeholder="お車でお越しの方、上記時間以外をご希望の方など、お気軽にご記入ください"></textarea>
+        </div>
+        <div id="visitDateError" style="color:#e05555;font-size:13px;margin-bottom:12px;display:none;"></div>
       </div>
-      <div style="margin-top:32px;display:flex;gap:12px;">
+      <div style="margin-top:24px;display:flex;gap:12px;">
         <button class="btn-outline" onclick="switchVisit(0)">← 戻る</button>
-        <button class="btn-primary" onclick="switchVisit(2)">次へ：情報を入力 →</button>
+        <button class="btn-primary" onclick="nextFromVisitDate()">次へ：情報を入力 →</button>
       </div>
     </div>
 
@@ -1172,7 +1173,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
         <button class="apply-step-btn" onclick="switchApplyGuarded(1)">② 管理期間</button>
         <button class="apply-step-btn" onclick="switchApplyGuarded(2)">③ 費用確認</button>
         <button class="apply-step-btn" onclick="switchApplyGuarded(3)">④ お客様情報</button>
-        <button class="apply-step-btn" onclick="switchApplyGuarded(4)">⑤規約同意</button>
+        <button class="apply-step-btn" onclick="switchApplyGuarded(4)">⑤ 規約同意</button>
         <button class="apply-step-btn" onclick="switchApplyGuarded(5)">⑥ 今後の流れ</button>
       </div>
 
@@ -1471,7 +1472,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
           <circle cx="336" cy="214" r="10" fill="none" stroke="#c9a227" stroke-width="5.5"/>
         </svg>
         <div class="footer-brand-text">送骨堂</div>
-        <div class="footer-tagline" style="white-space:nowrap;">お墓を「参る」からお骨を「招く」時代へ</div>
+        <div class="footer-tagline">お墓を「参る」からお骨を「招く」時代へ</div>
       </div>
       <div>
         <div class="footer-col-title">サービス</div>
@@ -1543,28 +1544,60 @@ function toggleDrawer() {
   update();
 })();
 
+// ── Validators & Turnstile helpers ──
+function isValidEmail(v) {
+  if (!v) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+function isValidTel(v) {
+  if (!v) return false;
+  var digits = v.replace(/[^0-9]/g, '');
+  return digits.length >= 10 && digits.length <= 13;
+}
+function getTurnstileToken(scopeSel) {
+  var el = document.querySelector(scopeSel + ' .cf-turnstile [name=cf-turnstile-response]');
+  return (el && el.value) || '';
+}
+function resetTurnstile(scopeSel) {
+  try {
+    if (window.turnstile && typeof turnstile.reset === 'function') {
+      var widget = document.querySelector(scopeSel + ' .cf-turnstile');
+      if (widget) turnstile.reset(widget);
+    }
+  } catch (e) {}
+}
+
 // ── Contact form submit ──
 function submitContactForm(btn) {
-  var name  = document.getElementById('contactName')?.value?.trim() || '';
-  var email = document.getElementById('contactEmail')?.value?.trim() || '';
-  var tel   = document.getElementById('contactTel')?.value?.trim() || '';
-  var type  = document.getElementById('contactType')?.value || '';
-  var body  = document.getElementById('contactMessage')?.value?.trim() || '';
+  var name  = (document.getElementById('contactName')   ||{}).value ? document.getElementById('contactName').value.trim() : '';
+  var email = (document.getElementById('contactEmail')  ||{}).value ? document.getElementById('contactEmail').value.trim() : '';
+  var tel   = (document.getElementById('contactTel')    ||{}).value ? document.getElementById('contactTel').value.trim() : '';
+  var type  = (document.getElementById('contactType')   ||{}).value || '';
+  var body  = (document.getElementById('contactMessage')||{}).value ? document.getElementById('contactMessage').value.trim() : '';
   if (!name || !email) { alert('お名前とメールアドレスは必須です。'); return; }
+  if (!isValidEmail(email)) { alert('メールアドレスの形式が正しくありません。'); return; }
+  if (tel && !isValidTel(tel)) { alert('電話番号の形式が正しくありません。（半角数字10桁以上）'); return; }
   btn.disabled = true; btn.textContent = '送信中...';
   fetch('https://jbnhvwncddvvtpaigzeq.supabase.co/functions/v1/form-contact', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: name, email: email, tel: tel, type: type, message: body, 'cf-turnstile-response': (document.querySelector('#contact .cf-turnstile [name=cf-turnstile-response]')||{}).value || '' })
+    body: JSON.stringify({ name: name, email: email, tel: tel, type: type, message: body, 'cf-turnstile-response': getTurnstileToken('#contact') })
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
-    btn.disabled = false; btn.textContent = '送信する';
-    if (data.success) { alert('お問い合わせを受け付けました。\n担当者からのご連絡をお待ちください。'); }
-    else { alert('送信に失敗しました。時間をおいて再度お試しください。'); }
+    if (data && data.success) {
+      btn.textContent = '送信完了';
+      // 成功時は disabled のまま（二重送信防止）
+      alert('お問い合わせを受け付けました。\n担当者からのご連絡をお待ちください。');
+    } else {
+      btn.disabled = false; btn.textContent = '送信する';
+      resetTurnstile('#contact');
+      alert('送信に失敗しました。時間をおいて再度お試しください。');
+    }
   })
   .catch(function() {
     btn.disabled = false; btn.textContent = '送信する';
+    resetTurnstile('#contact');
     alert('送信に失敗しました。時間をおいて再度お試しください。');
   });
 }
@@ -1658,7 +1691,9 @@ function updateResults() {
   }
   list.innerHTML = filtered.map(function(t) {
     var tagsHtml = t.tags.map(function(tag, i) { return '<span class="tag' + (i===0?' gold':'') + '">' + tag + '</span>'; }).join('');
-    return '<div class="search-result-card">' +
+    // エスケープ: 寺院名にシングルクォート等が含まれる場合の保険
+    var safeName = t.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    return '<div class="search-result-card" role="button" tabindex="0" onclick="goToApplyWithTemple(\'' + safeName + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();goToApplyWithTemple(\'' + safeName + '\');}">' +
       '<div class="result-icon"><svg width="28" height="24" viewBox="0 0 260 220"><g fill="#c9a227"><polygon points="72,88 130,46 188,88"/><rect x="62" y="85" width="136" height="7" rx="1.5"/></g></svg></div>' +
       '<div><div class="result-name">' + t.name + '</div>' +
       '<div class="result-area">📍 ' + t.area + t.city + ' · ' + t.sect + '</div>' +
@@ -1672,6 +1707,29 @@ function updateResults() {
   }).join('');
 }
 
+// 検索結果→申込セクションへ：寺院を選択状態にしてスクロール
+function goToApplyWithTemple(name) {
+  var t = (typeof estTemples !== 'undefined' ? estTemples : []).find(function(x) { return x.name === name; });
+  if (!t) { location.hash = '#apply'; return; }
+  applyState.temple    = t.name;
+  applyState.contract  = t.price;
+  applyState.kinugi    = t.kinugi;
+  applyState.annualFee = t.annualFee || 36000;
+  // #apply の temple-card を選択状態に
+  document.querySelectorAll('.temple-card').forEach(function(card) {
+    card.classList.remove('selected');
+    var nameEl = card.querySelector('.temple-card-name');
+    if (nameEl && nameEl.textContent.trim() === t.name.trim()) {
+      card.classList.add('selected');
+    }
+  });
+  var annualLabel = document.getElementById('periodAnnualFeeLabel');
+  if (annualLabel) annualLabel.textContent = applyState.annualFee.toLocaleString();
+  updateApplySummary();
+  // 申込step1まで進めて、該当カードが選択済みと分かる状態でスクロール
+  goApply(0);
+}
+
 // ── FAQ ──
 function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
 function toggleIhai(show) { var el = document.getElementById('ihaiFields'); if (el) el.style.display = show ? 'block' : 'none'; }
@@ -1682,50 +1740,52 @@ function switchVisit(idx) {
   document.querySelectorAll('.vstep').forEach((s,i) => s.classList.toggle('active', i===idx));
 }
 function selectLoc(el) { document.querySelectorAll('.loc-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); }
-function selectTime(el) { document.querySelectorAll('.time-slot').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); }
 
-// ── Calendar ──
-var calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
-function changeMonth(dir) {
-  calState.month += dir;
-  if (calState.month > 11) { calState.month = 0; calState.year++; }
-  if (calState.month < 0)  { calState.month = 11; calState.year--; }
-  renderCal();
+function nextFromLoc() {
+  var sel = document.querySelector('.loc-card.selected');
+  if (!sel) { alert('見学場所をお選びください。'); return; }
+  switchVisit(1);
 }
-function renderCal() {
-  var monthEl = document.getElementById('calMonth');
-  var gridEl  = document.getElementById('calGrid');
-  if (!monthEl || !gridEl) return;
-  var y = calState.year, m = calState.month;
-  monthEl.textContent = y + '年' + (m+1) + '月';
-  var first = new Date(y, m, 1).getDay();
-  var days  = new Date(y, m+1, 0).getDate();
+
+// ── Visit date inputs (希望日時入力) ──
+function initVisitDateInputs() {
   var today = new Date();
-  var html  = '<div class="cal-day-label">日</div><div class="cal-day-label">月</div><div class="cal-day-label">火</div><div class="cal-day-label">水</div><div class="cal-day-label">木</div><div class="cal-day-label">金</div><div class="cal-day-label">土</div>';
-  for (var i = 0; i < first; i++) html += '<div></div>';
-  for (var d = 1; d <= days; d++) {
-    var date = new Date(y, m, d);
-    var isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    var isSun = date.getDay() === 0;
-    var cls = 'cal-day' + (isPast ? ' past' : ' available') + (isSun ? ' sun' : '');
-    var dateStr = y + '/' + (m+1) + '/' + d;
-    html += '<div class="' + cls + '"' + (!isPast ? ' onclick="selectDate(this,\'' + dateStr + '\')"' : '') + '>' + d + '</div>';
-  }
-  gridEl.innerHTML = html;
+  var y = today.getFullYear();
+  var m = String(today.getMonth() + 1).padStart(2, '0');
+  var d = String(today.getDate()).padStart(2, '0');
+  var min = y + '-' + m + '-' + d;
+  ['visitDate1', 'visitDate2'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.min = min;
+  });
 }
-function selectDate(el, dateStr) {
-  document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  el.dataset.date = dateStr;
-  window._selectedVisitDate = dateStr;
-  var label = document.getElementById('selectedDateLabel');
-  var slots  = document.getElementById('timeSlots');
-  if (label) label.textContent = dateStr + ' の空き時間';
-  if (slots)  slots.style.display = 'block';
+function nextFromVisitDate() {
+  var d1 = (document.getElementById('visitDate1') || {}).value || '';
+  var t1 = (document.getElementById('visitTime1') || {}).value || '';
+  var d2 = (document.getElementById('visitDate2') || {}).value || '';
+  var t2 = (document.getElementById('visitTime2') || {}).value || '';
+  var errEl = document.getElementById('visitDateError');
+  if (!d1 || !t1) {
+    if (errEl) {
+      errEl.textContent = '第1希望の日付と時間帯をご入力ください。';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+  // 第2希望：片方だけ入力されていた場合は両方揃えてもらう
+  if ((d2 && !t2) || (!d2 && t2)) {
+    if (errEl) {
+      errEl.textContent = '第2希望は、日付と時間帯の両方をご入力ください（不要な場合は両方空欄にしてください）。';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
+  switchVisit(2);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  renderCal();
+  initVisitDateInputs();
   initSearchSelects();
   updateResults();
   initEstArea();
@@ -1836,10 +1896,23 @@ function nextFromInfo() {
   }
   var e1 = document.getElementById('infoEmail').value.trim();
   var e2 = document.getElementById('infoEmail2').value.trim();
+  if (!isValidEmail(e1)) {
+    errEl.textContent = 'メールアドレスの形式が正しくありません';
+    errEl.style.display = 'block';
+    document.getElementById('infoEmail').focus();
+    return;
+  }
   if (e1 !== e2) {
     errEl.textContent = 'メールアドレスが一致しません';
     errEl.style.display = 'block';
     document.getElementById('infoEmail2').focus();
+    return;
+  }
+  var telVal = document.getElementById('infoTel').value.trim();
+  if (!isValidTel(telVal)) {
+    errEl.textContent = '電話番号の形式が正しくありません（半角数字10桁以上）';
+    errEl.style.display = 'block';
+    document.getElementById('infoTel').focus();
     return;
   }
   errEl.style.display = 'none';
@@ -1926,7 +1999,7 @@ async function submitApplyData() {
         bldg:     (document.getElementById('infoBldg')   ||{}).value||'',
         tel:      (document.getElementById('infoTel')    ||{}).value||'',
         email:    (document.getElementById('infoEmail')  ||{}).value||'',
-        'cf-turnstile-response': (document.querySelector('#apply .cf-turnstile [name=cf-turnstile-response]')||{}).value || '',
+        'cf-turnstile-response': getTurnstileToken('#apply'),
       })
     });
     if (!res.ok) return false;
@@ -1950,48 +2023,69 @@ async function submitApplyFlow(btn) {
   } else {
     btn.disabled = false;
     btn.textContent = originalText;
-    alert('申込の送信に失敗しました。\nお手数ですが、しばらくしてから再度お試しいただくか、お電話（0120-XXX-XXX）でご連絡ください。');
+    resetTurnstile('#apply');
+    alert('申込の送信に失敗しました。\nお手数ですが、しばらくしてから再度お試しください。');
   }
 }
 
 function submitVisitForm(btn) {
   var locEl     = document.querySelector('.loc-card.selected');
-  var dateEl    = document.querySelector('.cal-day.selected');
-  var timeEl    = document.querySelector('.time-slot.selected:not(.full)');
-  var name      = (document.getElementById('visitName')      ||{}).value.trim();
-  var tel       = (document.getElementById('visitTel')       ||{}).value.trim();
-  var email     = (document.getElementById('visitEmail')     ||{}).value.trim();
+  var name      = ((document.getElementById('visitName')      ||{}).value || '').trim();
+  var tel       = ((document.getElementById('visitTel')       ||{}).value || '').trim();
+  var email     = ((document.getElementById('visitEmail')     ||{}).value || '').trim();
+  var email2    = ((document.getElementById('visitEmail2')    ||{}).value || '').trim();
   var headcount = (document.getElementById('visitHeadcount') ||{}).value || '';
-  var hasBones  = document.querySelector('input[name="ihai"]:checked')?.value === 'yes' ? 'あり' : 'なし';
+  var hasBonesVal = (document.querySelector('input[name="ihai"]:checked') || {}).value;
+  var hasBones  = hasBonesVal === 'yes' ? 'あり' : 'なし';
   var boneCount = (document.getElementById('visitBoneCount') ||{}).value || '';
   var boneLoc   = (document.getElementById('visitBoneLoc')   ||{}).value || '';
-  var boneAddr  = (document.getElementById('visitBoneAddr')  ||{}).value || '';
+  var boneAddr  = ((document.getElementById('visitBoneAddr') ||{}).value || '').trim();
   var location  = locEl ? (locEl.querySelector('.loc-name') ?
     locEl.querySelector('.loc-name').textContent.trim() :
     locEl.textContent.trim().split('\n')[0].trim()) : '';
-  var date = window._selectedVisitDate || (dateEl ? (dateEl.dataset.date || '') : '');
-  var time = timeEl ? timeEl.textContent.trim() : '';
+  var date1 = ((document.getElementById('visitDate1') ||{}).value || '').trim();
+  var time1 = ((document.getElementById('visitTime1') ||{}).value || '').trim();
+  var date2 = ((document.getElementById('visitDate2') ||{}).value || '').trim();
+  var time2 = ((document.getElementById('visitTime2') ||{}).value || '').trim();
+  var note  = ((document.getElementById('visitNote')  ||{}).value || '').trim();
+
+  if (!location) { alert('見学場所をお選びください。'); return; }
+  if (!date1 || !time1) { alert('第1希望の日付と時間帯をご入力ください。'); return; }
   if (!name || !tel || !email) { alert('お名前・電話番号・メールアドレスは必須です。'); return; }
+  if (!isValidEmail(email)) { alert('メールアドレスの形式が正しくありません。'); return; }
+  if (email !== email2) { alert('メールアドレス（確認）が一致しません。'); return; }
+  if (!isValidTel(tel)) { alert('電話番号の形式が正しくありません。（半角数字10桁以上）'); return; }
+
   if (btn) { btn.disabled = true; btn.textContent = '送信中...'; }
   fetch('https://jbnhvwncddvvtpaigzeq.supabase.co/functions/v1/form-visit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       name: name, tel: tel, email: email,
-      location: location, date: date, time: time,
+      location: location,
+      date: date1, time: time1,
+      date2: date2, time2: time2,
+      note: note,
       headcount: headcount, has_bones: hasBones,
       bone_count: boneCount, bone_location: boneLoc, bone_address: boneAddr,
-      'cf-turnstile-response': (document.querySelector('#visit .cf-turnstile [name=cf-turnstile-response]')||{}).value || ''
+      'cf-turnstile-response': getTurnstileToken('#visit')
     })
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
-    if (btn) { btn.disabled = false; btn.textContent = '見学を予約する'; }
-    if (data.success) { switchVisit(3); }
-    else { alert('送信に失敗しました。時間をおいて再度お試しください。'); }
+    if (data && data.success) {
+      // 成功時はボタンdisabledのまま完了画面へ
+      if (btn) btn.textContent = '送信完了';
+      switchVisit(3);
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = '見学を予約する'; }
+      resetTurnstile('#visit');
+      alert('送信に失敗しました。時間をおいて再度お試しください。');
+    }
   })
   .catch(function() {
     if (btn) { btn.disabled = false; btn.textContent = '見学を予約する'; }
+    resetTurnstile('#visit');
     alert('送信に失敗しました。時間をおいて再度お試しください。');
   });
 }
@@ -2078,7 +2172,32 @@ function initSearchSelects() {
       var o = document.createElement('option'); o.value = s; o.textContent = s; sectEl.appendChild(o);
     });
   }
+  // 金額スライダーの max を実データに合わせて動的設定
+  initPriceRange();
 }
+
+function initPriceRange() {
+  var slider = document.getElementById('priceRange');
+  if (!slider || !Array.isArray(temples) || temples.length === 0) return;
+  var prices = temples.map(function(t) { return Number(t.price) || 0; }).filter(function(p) { return p > 0; });
+  if (prices.length === 0) return;
+  var minP = Math.min.apply(null, prices);
+  var maxP = Math.max.apply(null, prices);
+  // スライダー下限：最小価格-50,000（下限10,000）
+  var sliderMin = Math.max(10000, Math.floor((minP - 50000) / 10000) * 10000);
+  // スライダー上限：最大価格+100,000（最低でも300,000）
+  var sliderMax = Math.max(300000, Math.ceil((maxP + 100000) / 10000) * 10000);
+  slider.min = sliderMin;
+  slider.max = sliderMax;
+  slider.value = sliderMax;
+  var valEl = document.getElementById('priceVal');
+  if (valEl) valEl.textContent = Number(sliderMax).toLocaleString();
+  var minLbl = document.getElementById('priceMinLabel');
+  var maxLbl = document.getElementById('priceMaxLabel');
+  if (minLbl) minLbl.textContent = '¥' + sliderMin.toLocaleString() + '〜';
+  if (maxLbl) maxLbl.textContent = '¥' + sliderMax.toLocaleString();
+}
+
 function onSearchAreaChange() {
   var area   = (document.getElementById('searchArea')||{}).value || '';
   var cityEl = document.getElementById('searchCity');
