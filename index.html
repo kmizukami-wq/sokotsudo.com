@@ -179,6 +179,17 @@
 }
 </script>
 
+<!-- Google Analytics 4 (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MSPM3ENJ6W"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-MSPM3ENJ6W', {
+    'anonymize_ip': true
+  });
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -191,15 +202,38 @@
   --white: #ffffff;
   --off: #faf8f4;
   --gray: #f2f0ed;
-  --text: #2a2a2a;
-  --muted: #888;
+  --text: #1a1a1a;
+  --muted: #666;
   --serif: 'Noto Serif JP', serif;
   --sans: 'Noto Sans JP', sans-serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { font-family: var(--sans); color: var(--text); background: var(--white); overflow-x: hidden; }
+body { font-family: var(--sans); color: var(--text); background: var(--white); overflow-x: hidden; font-size: 16px; line-height: 1.7; }
+
+/* ACCESSIBILITY: タップ領域最小44px、フォーカス可視化 */
+a, button, input, select, textarea { font-size: inherit; }
+button, a.btn-primary, a.btn-outline, .nav-cta, .mobile-drawer-tel, .mobile-drawer-cta { min-height: 44px; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="number"], select, textarea { min-height: 44px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* スキップリンク（スクリーンリーダー向け） */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--navy);
+  color: var(--gold-light);
+  padding: 12px 20px;
+  z-index: 1000;
+  text-decoration: none;
+  font-weight: 700;
+}
+.skip-link:focus { left: 8px; top: 8px; }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--gray); }
@@ -507,7 +541,8 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
 .footer-copy { font-size: 11px; }
 
 /* CTA FLOAT */
-.cta-float { position: fixed; bottom: 24px; right: 24px; z-index: 99; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+.cta-float { position: fixed; bottom: 24px; right: 24px; z-index: 99; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; transition: opacity 0.3s, transform 0.3s; }
+.cta-float.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
 .cta-float a { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 2px; font-family: var(--sans); font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 16px rgba(0,0,0,0.3); transition: transform 0.2s; letter-spacing: 0.05em; }
 .cta-float a:hover { transform: translateY(-2px); }
 .cta-float .btn-tel { background: var(--white); color: var(--navy2); }
@@ -536,6 +571,9 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
 </head>
 <body>
 
+<!-- スキップリンク（スクリーンリーダー向け） -->
+<a href="#hero" class="skip-link">本文へスキップ</a>
+
 <!-- FLOATING CTA -->
 <div class="cta-float">
   <a href="#contact" class="btn-tel">お問い合わせ</a>
@@ -545,7 +583,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
 <!-- NAV -->
 <nav>
   <a href="#hero" class="nav-logo">
-    <svg width="42" height="30" viewBox="0 0 420 290" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+    <svg width="42" height="30" viewBox="0 0 420 290" xmlns="http://www.w3.org/2000/svg" class="logo-svg" role="img" aria-label="送骨堂ロゴ">
       <path d="M52 152 Q68 148 210 58 Q352 148 368 152 Z" fill="#e8eaf0"/>
       <path d="M34 145 Q43 135 52 152" fill="none" stroke="#e8eaf0" stroke-width="10" stroke-linecap="round"/>
       <path d="M368 152 Q377 135 386 145" fill="none" stroke="#e8eaf0" stroke-width="10" stroke-linecap="round"/>
@@ -609,7 +647,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <svg width="130" height="92" viewBox="0 0 420 290" xmlns="http://www.w3.org/2000/svg" style="margin:0 auto 36px;display:block;">
+    <svg width="130" height="92" viewBox="0 0 420 290" xmlns="http://www.w3.org/2000/svg" style="margin:0 auto 36px;display:block;" role="img" aria-label="送骨堂ロゴ">
       <path d="M52 152 Q68 148 210 58 Q352 148 368 152 Z" fill="#e8eaf0"/>
       <path d="M34 145 Q43 135 52 152" fill="none" stroke="#e8eaf0" stroke-width="10" stroke-linecap="round"/>
       <path d="M368 152 Q377 135 386 145" fill="none" stroke="#e8eaf0" stroke-width="10" stroke-linecap="round"/>
@@ -863,7 +901,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
         </div>
         <div class="loc-card" onclick="selectLoc(this)">
           <div class="loc-name">サンプル3  永代供養墓</div>
-          <div class="loc-area">東京都</div>
+          <div class="loc-area">東京都江東区</div>
         </div>
         <div class="loc-card" onclick="selectLoc(this)">
           <div class="loc-name">サンプル寺　永代供養墓</div>
@@ -915,7 +953,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
         <div class="vform-row2">
           <div class="vform-row">
             <label>お名前 <span>必須</span></label>
-            <input class="vform-input" type="text" id="visitName" placeholder="山田 太郎">
+            <input class="vform-input" type="text" id="visitName" autocomplete="name" placeholder="山田 太郎">
           </div>
           <div class="vform-row">
             <label>参加人数 <span>必須</span></label>
@@ -926,15 +964,15 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
         </div>
         <div class="vform-row">
           <label>電話番号 <span>必須</span></label>
-          <input class="vform-input" type="tel" id="visitTel" placeholder="090-0000-0000">
+          <input class="vform-input" type="tel" id="visitTel" autocomplete="tel" inputmode="tel" placeholder="090-0000-0000">
         </div>
         <div class="vform-row">
           <label>メールアドレス <span>必須</span></label>
-          <input class="vform-input" type="email" id="visitEmail" placeholder="example@mail.com">
+          <input class="vform-input" type="email" id="visitEmail" autocomplete="email" inputmode="email" placeholder="example@mail.com">
         </div>
         <div class="vform-row">
           <label>メールアドレス（確認） <span>必須</span></label>
-          <input class="vform-input" type="email" id="visitEmail2" placeholder="example@mail.com（再入力）">
+          <input class="vform-input" type="email" id="visitEmail2" autocomplete="email" inputmode="email" placeholder="example@mail.com（再入力）">
         </div>
 
         <div class="vform-row">
@@ -1099,9 +1137,9 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
             <div class="temple-card-area">千葉県市川市 · 浄土真宗</div>
             <div style="margin-top:4px;font-size:10px;opacity:0.6;">永代供養 · QR管理 · 個別安置</div>
           </div>
-          <div class="temple-card" onclick="selectTemple(this,'サンプル3  永代供養墓','東京都',90000,10000)">
+          <div class="temple-card" onclick="selectTemple(this,'サンプル3  永代供養墓','東京都江東区',90000,10000)">
             <div class="temple-card-name">サンプル3  永代供養墓</div>
-            <div class="temple-card-area">東京都 · 真言宗</div>
+            <div class="temple-card-area">東京都江東区 · 真言宗</div>
             <div style="margin-top:4px;font-size:10px;opacity:0.6;">永代供養 · QR管理 · 個別安置</div>
           </div>
           <div class="temple-card" onclick="selectTemple(this,'サンプル寺　永代供養墓','東京都台東区',90000,20000)">
@@ -1164,17 +1202,17 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
               <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">氏名 <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoName" placeholder="山田 太郎" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <input type="text" id="infoName" name="infoName" placeholder="山田 太郎" autocomplete="name" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
             </div>
             <div>
               <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">ふりがな <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoKana" placeholder="やまだ たろう" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <input type="text" id="infoKana" autocomplete="name" placeholder="やまだ たろう" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
               <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">ご年齢 <span style="color:#e55;">*</span></label>
-              <input type="number" id="infoAge" placeholder="例：65" min="0" max="120" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <input type="number" id="infoAge" autocomplete="off" placeholder="例：65" min="0" max="120" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
             </div>
             <div></div>
           </div>
@@ -1182,7 +1220,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
             <div>
               <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">郵便番号 <span style="color:#e55;">*</span></label>
               <div style="display:flex;gap:8px;align-items:center;">
-                <input type="text" id="infoZip" placeholder="000-0000" maxlength="8" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;flex:1;" oninput="autoFillAddress(this.value)">
+                <input type="text" id="infoZip" autocomplete="postal-code" inputmode="numeric" placeholder="000-0000" maxlength="8" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;flex:1;" oninput="autoFillAddress(this.value)">
                 <button type="button" onclick="autoFillAddress(document.getElementById('infoZip').value)" style="padding:10px 12px;background:var(--gold);color:var(--navy);border:none;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">住所検索</button>
               </div>
             </div>
@@ -1191,38 +1229,38 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
               <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">都道府県 <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoPref" placeholder="東京都" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <input type="text" id="infoPref" autocomplete="address-level1" placeholder="東京都" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
             </div>
             <div>
               <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">市区町村 <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoCity" placeholder="渋谷区神宮前" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <input type="text" id="infoCity" autocomplete="address-level2" placeholder="渋谷区神宮前" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
               <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">番地以降 <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoStreet" placeholder="1-2-3" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <input type="text" id="infoStreet" autocomplete="address-line1" placeholder="1-2-3" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
             </div>
             <div></div>
           </div>
           <div>
             <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">建物名・部屋番号など</label>
-            <input type="text" id="infoBldg" placeholder="〇〇マンション 101号室" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+            <input type="text" id="infoBldg" autocomplete="address-line2" placeholder="〇〇マンション 101号室" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
               <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">電話番号 <span style="color:#e55;">*</span></label>
-              <input type="tel" id="infoTel" placeholder="090-0000-0000" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <input type="tel" id="infoTel" autocomplete="tel" inputmode="tel" placeholder="090-0000-0000" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
             </div>
             <div></div>
           </div>
           <div>
             <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">メールアドレス <span style="color:#e55;">*</span></label>
-            <input type="email" id="infoEmail" placeholder="example@mail.com" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+            <input type="email" id="infoEmail" autocomplete="email" inputmode="email" placeholder="example@mail.com" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
           </div>
           <div>
             <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">メールアドレス（確認） <span style="color:#e55;">*</span></label>
-            <input type="email" id="infoEmail2" placeholder="example@mail.com（再入力）" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+            <input type="email" id="infoEmail2" autocomplete="email" inputmode="email" placeholder="example@mail.com（再入力）" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
           </div>
         </div>
         <div id="infoError" style="color:#e55;font-size:13px;margin-bottom:12px;display:none;"></div>
@@ -1321,26 +1359,26 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
             <iframe
               src="https://maps.google.com/maps?q=%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%8F%B0%E6%9D%B1%E5%8C%BA%E8%94%B5%E5%89%8D4-33-9&hl=ja&z=17&output=embed"
               width="100%" height="220" style="border:0;display:block;" allowfullscreen="" loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"></iframe>
+              referrerpolicy="no-referrer-when-downgrade" title="送骨堂 所在地の地図"></iframe>
           </div>
         </div>
       </div>
-      <div class="contact-form">
+      <form class="contact-form" onsubmit="return false;">
         <div class="cform-row">
-          <label>お名前</label>
-          <input class="cform-input" type="text" placeholder="山田 太郎">
+          <label for="contactName">お名前</label>
+          <input class="cform-input" type="text" id="contactName" name="name" placeholder="山田 太郎" autocomplete="name">
         </div>
         <div class="cform-row">
-          <label>メールアドレス</label>
-          <input class="cform-input" type="email" placeholder="example@mail.com">
+          <label for="contactEmail">メールアドレス</label>
+          <input class="cform-input" type="email" id="contactEmail" name="email" placeholder="example@mail.com" autocomplete="email">
         </div>
         <div class="cform-row">
-          <label>電話番号</label>
-          <input class="cform-input" type="tel" placeholder="090-0000-0000">
+          <label for="contactTel">電話番号</label>
+          <input class="cform-input" type="tel" id="contactTel" name="tel" placeholder="090-0000-0000" autocomplete="tel">
         </div>
         <div class="cform-row">
-          <label>お問い合わせ種別</label>
-          <select class="cform-input" style="-webkit-appearance:none;">
+          <label for="contactType">お問い合わせ種別</label>
+          <select class="cform-input" id="contactType" name="type" style="-webkit-appearance:none;">
             <option>サービスについて</option>
             <option>料金について</option>
             <option>見学申込について</option>
@@ -1349,11 +1387,11 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
           </select>
         </div>
         <div class="cform-row">
-          <label>お問い合わせ内容</label>
-          <textarea class="cform-textarea" placeholder="ご質問・ご相談内容をお聞かせください"></textarea>
+          <label for="contactMessage">お問い合わせ内容</label>
+          <textarea class="cform-textarea" id="contactMessage" name="message" placeholder="ご質問・ご相談内容をお聞かせください"></textarea>
         </div>
-        <button class="btn-primary" style="width:100%;" id="contactSubmitBtn" onclick="submitContactForm(this)">送信する</button>
-      </div>
+        <button class="btn-primary" type="submit" style="width:100%;" id="contactSubmitBtn" onclick="submitContactForm(this)">送信する</button>
+      </form>
     </div>
   </div>
 </section>
@@ -1363,7 +1401,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
   <div class="footer-inner">
     <div class="footer-top">
       <div>
-        <svg width="56" height="40" viewBox="0 0 420 290" xmlns="http://www.w3.org/2000/svg">
+        <svg width="56" height="40" viewBox="0 0 420 290" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M52 152 Q68 148 210 58 Q352 148 368 152 Z" fill="rgba(255,255,255,0.6)"/>
           <path d="M34 145 Q43 135 52 152" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="10" stroke-linecap="round"/>
           <path d="M368 152 Q377 135 386 145" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="10" stroke-linecap="round"/>
@@ -1427,20 +1465,44 @@ function toggleDrawer() {
   document.body.classList.toggle('drawer-open');
 }
 
+// ── CTA float: フッター到達で自動非表示 ──
+(function() {
+  var cta = document.querySelector('.cta-float');
+  var footer = document.querySelector('footer');
+  if (!cta || !footer) return;
+  var ticking = false;
+  function update() {
+    var footerRect = footer.getBoundingClientRect();
+    // フッターが画面内に入ったらCTAを隠す
+    if (footerRect.top < window.innerHeight) {
+      cta.classList.add('hidden');
+    } else {
+      cta.classList.remove('hidden');
+    }
+    ticking = false;
+  }
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+  update();
+})();
+
 // ── Contact form submit ──
 function submitContactForm(btn) {
-  var rows = document.querySelectorAll('#contact .contact-form .cform-row');
-  var name  = rows[0]?.querySelector('input')?.value?.trim();
-  var email = rows[1]?.querySelector('input')?.value?.trim();
-  var tel   = rows[2]?.querySelector('input')?.value?.trim();
-  var type  = rows[3]?.querySelector('select')?.value;
-  var body  = rows[4]?.querySelector('textarea')?.value?.trim();
+  var name  = document.getElementById('contactName')?.value?.trim() || '';
+  var email = document.getElementById('contactEmail')?.value?.trim() || '';
+  var tel   = document.getElementById('contactTel')?.value?.trim() || '';
+  var type  = document.getElementById('contactType')?.value || '';
+  var body  = document.getElementById('contactMessage')?.value?.trim() || '';
   if (!name || !email) { alert('お名前とメールアドレスは必須です。'); return; }
   btn.disabled = true; btn.textContent = '送信中...';
   fetch('https://jbnhvwncddvvtpaigzeq.supabase.co/functions/v1/form-contact', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: name, email: email, tel: tel||'', type: type||'', message: body||'' })
+    body: JSON.stringify({ name: name, email: email, tel: tel, type: type, message: body })
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
@@ -1465,18 +1527,18 @@ function switchTab(btn, panelId) {
 // ── Temple data (auto-generated by sync-web) ──
 var estTemples = [
   { name:'サンプル2寺　納骨堂', area:'千葉県', city:'市川市', sect:'浄土真宗', price:90000, kinugi:10000, annualFee:36000 },
-  { name:'サンプル3  永代供養墓', area:'東京都', city:'', sect:'真言宗', price:90000, kinugi:10000, annualFee:36000 },
+  { name:'サンプル3  永代供養墓', area:'東京都江東区', city:'', sect:'真言宗', price:90000, kinugi:10000, annualFee:36000 },
   { name:'サンプル寺　永代供養墓', area:'東京都', city:'台東区', sect:'浄土宗', price:90000, kinugi:20000, annualFee:36000 },
   { name:'サンプル寺　納骨堂', area:'東京都', city:'中央区', sect:'宗派不問', price:90000, kinugi:10000, annualFee:36000 }
 ];
 var temples = [
   { name:'サンプル2寺　納骨堂', area:'千葉県', city:'市川市', sect:'浄土真宗', price:90000, kinugi:10000, annualFee:36000, tags:['永代供養','QR管理','個別安置'] },
-  { name:'サンプル3  永代供養墓', area:'東京都', city:'', sect:'真言宗', price:90000, kinugi:10000, annualFee:36000, tags:['永代供養','QR管理','個別安置'] },
+  { name:'サンプル3  永代供養墓', area:'東京都江東区', city:'', sect:'真言宗', price:90000, kinugi:10000, annualFee:36000, tags:['永代供養','QR管理','個別安置'] },
   { name:'サンプル寺　永代供養墓', area:'東京都', city:'台東区', sect:'浄土宗', price:90000, kinugi:20000, annualFee:36000, tags:['永代供養','QR管理','個別安置'] },
   { name:'サンプル寺　納骨堂', area:'東京都', city:'中央区', sect:'宗派不問', price:90000, kinugi:10000, annualFee:36000, tags:['永代供養','QR管理','個別安置'] }
 ];
-var searchAreas = ["千葉県","東京都"];
-var searchAreaCityMap = {"千葉県":["市川市"],"東京都":["中央区","台東区"]};
+var searchAreas = ["千葉県","東京都","東京都江東区"];
+var searchAreaCityMap = {"千葉県":["市川市"],"東京都江東区":[],"東京都":["中央区","台東区"]};
 var searchSects = ["宗派不問","浄土宗","浄土真宗","真言宗"];
 
 function initEstArea() {
