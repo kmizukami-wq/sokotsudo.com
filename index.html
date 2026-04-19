@@ -26,7 +26,9 @@
   <meta name="twitter:image" content="https://sokotsudo.com/og-image.png">
   <meta name="twitter:image:alt" content="送骨堂 — 招く供養">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="canonical" href="https://sokotsudo.com/">
+  <meta name="theme-color" content="#0f1c30">
 
 <!-- JSON-LD: Organization / LocalBusiness -->
 <script type="application/ld+json">
@@ -410,7 +412,9 @@ section { padding: 96px 40px; }
 .search-select-wrap select, .search-input { width: 100%; padding: 12px 16px; border: 1px solid #e0ddd8; border-radius: 2px; font-family: var(--sans); font-size: 14px; color: var(--text); background: var(--off); appearance: none; -webkit-appearance: none; }
 .search-select-wrap::after { content: '▾'; position: absolute; right: 12px; bottom: 14px; color: var(--muted); pointer-events: none; font-size: 12px; }
 .search-result-card { border: 1px solid #e0ddd8; border-radius: 4px; padding: 24px; display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; transition: box-shadow 0.2s, border-color 0.2s; cursor: pointer; background: var(--white); }
-.search-result-card:hover { box-shadow: 0 4px 20px rgba(15,28,48,0.1); border-color: var(--gold); }
+@media (hover: hover) {
+  .search-result-card:hover { box-shadow: 0 4px 20px rgba(15,28,48,0.1); border-color: var(--gold); }
+}
 .result-icon { width: 56px; height: 56px; background: var(--navy2); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .result-name { font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--navy2); margin-bottom: 4px; word-break: keep-all; overflow-wrap: anywhere; }
 .result-area { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
@@ -450,7 +454,10 @@ section { padding: 96px 40px; }
 .visit-panel.active { display: block; }
 .location-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
 .loc-card { border: 2px solid #e0ddd8; border-radius: 4px; padding: 20px; cursor: pointer; transition: all 0.2s; text-align: center; background: var(--white); font: inherit; color: inherit; width: 100%; display: block; }
-.loc-card:hover, .loc-card.selected { border-color: var(--gold); background: var(--gold-pale); }
+.loc-card.selected { border-color: var(--gold); background: var(--gold-pale); }
+@media (hover: hover) {
+  .loc-card:hover { border-color: var(--gold); background: var(--gold-pale); }
+}
 .loc-name { font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--navy2); margin-bottom: 4px; }
 .loc-area { font-size: 12px; color: var(--muted); }
 .cal-wrap { display: none; }
@@ -513,7 +520,10 @@ section { padding: 96px 40px; }
 .apply-panel.active { display: block; }
 .temple-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
 .temple-card { border: 2px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 16px; cursor: pointer; transition: all 0.2s; background: transparent; font: inherit; color: inherit; text-align: left; width: 100%; display: block; }
-.temple-card:hover, .temple-card.selected { border-color: var(--gold); background: rgba(201,162,39,0.08); }
+.temple-card.selected { border-color: var(--gold); background: rgba(201,162,39,0.08); }
+@media (hover: hover) {
+  .temple-card:hover { border-color: var(--gold); background: rgba(201,162,39,0.08); }
+}
 .temple-card-name { font-family: var(--serif); font-size: 15px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
 .temple-card-area { font-size: 11px; color: rgba(255,255,255,0.4); }
 .period-slider { width: 100%; accent-color: var(--gold); margin: 8px 0; }
@@ -569,8 +579,21 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
 .form-feedback.error { background: rgba(224,85,85,0.08); border: 1px solid rgba(224,85,85,0.4); color: #c93d3d; }
 .form-feedback.success { background: rgba(201,162,39,0.08); border: 1px solid rgba(201,162,39,0.4); color: #8b6f17; }
 /* 暗背景フォーム向けの色調整 */
-#apply .form-feedback.error, #visit-step-feedback.error { color: #ff8a8a; background: rgba(255,120,120,0.08); border-color: rgba(255,120,120,0.35); }
+#apply .form-feedback.error { color: #ff8a8a; background: rgba(255,120,120,0.08); border-color: rgba(255,120,120,0.35); }
 #apply .form-feedback.success { color: var(--gold-light); background: rgba(201,162,39,0.12); border-color: rgba(201,162,39,0.45); }
+
+/* R13: aria-busy 送信中ボタン視覚フィードバック */
+button[aria-busy="true"] { cursor: wait; opacity: 0.7; }
+button[aria-busy="true"]::after { content: ' ⏳'; }
+
+/* R17: 申込 step3 入力フィールドの共通クラス(インラインstyle置換用) */
+.apply-label { display: block; font-size: 12px; color: var(--gold-light); margin-bottom: 6px; }
+.apply-label .req { color: #e55; }
+.apply-input { width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; color: var(--white); font-size: 14px; box-sizing: border-box; font-family: inherit; }
+.apply-input:focus { outline: none; border-color: var(--gold); }
+.apply-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.apply-zip-wrap { display: flex; gap: 8px; align-items: center; }
+.apply-zip-btn { padding: 10px 12px; background: var(--gold); color: var(--navy); border: none; border-radius: 4px; font-size: 12px; cursor: pointer; white-space: nowrap; font-family: inherit; }
 
 @media (max-width: 768px) {
   nav { padding: 0 16px; }
@@ -658,7 +681,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
       <a href="/terms.html">利用規約</a>
       <a href="/tokushoho.html">特定商取引法</a>
     </div>
-    <a href="tel:0120XXXXXX" class="mobile-drawer-tel">📞 お電話で相談する<br><span style="font-size:12px;font-weight:400;opacity:0.8;">0120-XXX-XXX（10:00〜17:00）</span></a>
+    <a href="tel:0120XXXXXX" class="mobile-drawer-tel" onclick="toggleDrawer()">📞 お電話で相談する<br><span style="font-size:12px;font-weight:400;opacity:0.8;">0120-XXX-XXX（10:00〜17:00）</span></a>
     <a href="#apply" class="mobile-drawer-cta" onclick="toggleDrawer()">お申込はこちら</a>
   </div>
 </div>
@@ -779,17 +802,17 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
     <div id="tab-area" class="search-panel active">
       <div class="search-grid">
         <div class="search-select-wrap">
-          <label>都道府県</label>
+          <label for="searchArea">都道府県</label>
           <select class="search-input" id="searchArea" onchange="onSearchAreaChange();updateResults()">
             <option value="">選択してください</option>
           </select></div>
         <div class="search-select-wrap">
-          <label>市区町村</label>
+          <label for="searchCity">市区町村</label>
           <select class="search-input" id="searchCity" onchange="updateResults()">
             <option value="">選択してください</option>
           </select></div>
         <div>
-          <label style="font-size:11px;letter-spacing:0.2em;color:var(--muted);display:block;margin-bottom:6px;">キーワード</label>
+          <label for="searchKeyword" style="font-size:11px;letter-spacing:0.2em;color:var(--muted);display:block;margin-bottom:6px;">キーワード</label>
           <input class="search-input" id="searchKeyword" type="text" placeholder="寺院名・地名など" oninput="updateResults()" style="border:1px solid #e0ddd8;border-radius:2px;background:var(--off);">
         </div>
       </div>
@@ -799,7 +822,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
     <div id="tab-sect" class="search-panel">
       <div class="search-grid">
         <div class="search-select-wrap">
-          <label>宗派</label>
+          <label for="searchSect">宗派</label>
           <select class="search-input" id="searchSect" onchange="updateResults()">
             <option value="">宗派を選択</option>
           </select>
@@ -810,7 +833,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
 
     <div id="tab-price" class="search-panel">
       <div style="margin-bottom:24px;">
-        <label style="font-size:11px;letter-spacing:0.2em;color:var(--muted);display:block;margin-bottom:12px;">契約金（上限）</label>
+        <label for="priceRange" style="font-size:11px;letter-spacing:0.2em;color:var(--muted);display:block;margin-bottom:12px;">契約金（上限）</label>
         <input type="range" min="90000" max="300000" step="10000" value="150000" style="width:100%;accent-color:var(--gold);margin-bottom:8px;" id="priceRange" oninput="document.getElementById('priceVal').textContent=Number(this.value).toLocaleString();updateResults()">
         <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);">
           <span id="priceMinLabel">¥90,000〜</span>
@@ -821,7 +844,18 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
       <button class="btn-primary" onclick="updateResults()">検索する</button>
     </div>
 
-    <p style="font-size:12px;color:var(--muted);margin-top:24px;text-align:right;">※表示価格は全て税込です</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:16px;flex-wrap:wrap;">
+      <p style="font-size:12px;color:var(--muted);margin:0;">※表示価格は全て税込です</p>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label for="searchSort" style="font-size:12px;color:var(--muted);">並び替え：</label>
+        <select id="searchSort" onchange="updateResults()" style="padding:6px 10px;border:1px solid #e0ddd8;border-radius:2px;background:var(--off);font-family:var(--sans);font-size:13px;color:var(--text);-webkit-appearance:none;appearance:none;">
+          <option value="default">おすすめ順</option>
+          <option value="price-asc">契約金：安い順</option>
+          <option value="price-desc">契約金：高い順</option>
+          <option value="fee-asc">管理費：安い順</option>
+        </select>
+      </div>
+    </div>
     <div class="results-list" style="margin-top:8px;" id="resultsList"></div>
   </div>
 </section>
@@ -835,21 +869,21 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
     <div class="estimate-box">
       <div class="estimate-row" style="grid-template-columns:1fr;">
         <div>
-          <div class="field-label">ご希望エリア</div>
+          <label for="estArea" class="field-label">ご希望エリア</label>
           <select class="field-select" id="estArea" onchange="onAreaChange()">
             <option value="">エリアを選択してください</option>
           </select>
         </div>
       </div>
       <div id="estTempleRow" style="display:none;margin-bottom:16px;">
-        <div class="field-label">送骨堂を選択</div>
+        <label for="estTemple" class="field-label">送骨堂を選択</label>
         <select class="field-select" id="estTemple" onchange="onTempleChange()">
           <option value="">選択してください</option>
         </select>
       </div>
       <div class="estimate-row" style="grid-template-columns:1fr;">
         <div>
-          <div class="field-label">管理期間：<span id="estPeriodLabel" style="color:var(--gold-light);font-size:14px;">3年</span></div>
+          <label for="estPeriod" class="field-label">管理期間：<span id="estPeriodLabel" style="color:var(--gold-light);font-size:14px;">3年</span></label>
           <input type="range" min="3" max="30" step="1" value="3" id="estPeriod"
             style="width:100%;accent-color:var(--gold);margin:10px 0 4px;"
             oninput="document.getElementById('estPeriodLabel').textContent=this.value+'年';calcEstimate();updateManageFeeBox()">
@@ -867,7 +901,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
       </div>
       <div class="estimate-row">
         <div>
-          <div class="field-label">追加送骨（任意）<span style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:400;display:block;margin-top:3px;">年1回の送骨は管理費に含まれます</span></div>
+          <label for="estExtra" class="field-label">追加送骨（任意）<span style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:400;display:block;margin-top:3px;">年1回の送骨は管理費に含まれます</span></label>
           <select class="field-select" id="estExtra" onchange="calcEstimate()">
             <option value="0">追加なし</option>
             <option value="1">年1回追加（+¥30,000/回）</option>
@@ -946,12 +980,12 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
         ご希望の日時をご記入ください。内容確認のうえ、担当者より調整のご連絡を差し上げます。<br>
         受付時間：毎日 10:00〜17:00（年中無休）
       </p>
-      <div class="vform">
+      <form class="vform" onsubmit="nextFromVisitDate(); return false;">
         <div class="vform-row">
           <label>第1希望 <span>必須</span></label>
           <div class="vform-row2">
-            <input class="vform-input" type="date" id="visitDate1" min="" style="flex:1;">
-            <select class="vform-select" id="visitTime1">
+            <input class="vform-input" type="date" id="visitDate1" min="" aria-label="第1希望 日付" style="flex:1;">
+            <select class="vform-select" id="visitTime1" aria-label="第1希望 時間帯">
               <option value="">時間帯を選択</option>
               <option value="10:00">10:00</option>
               <option value="11:00">11:00</option>
@@ -965,8 +999,8 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
         <div class="vform-row">
           <label>第2希望 <span style="color:var(--muted);">任意</span></label>
           <div class="vform-row2">
-            <input class="vform-input" type="date" id="visitDate2" min="">
-            <select class="vform-select" id="visitTime2">
+            <input class="vform-input" type="date" id="visitDate2" min="" aria-label="第2希望 日付">
+            <select class="vform-select" id="visitTime2" aria-label="第2希望 時間帯">
               <option value="">時間帯を選択</option>
               <option value="10:00">10:00</option>
               <option value="11:00">11:00</option>
@@ -978,42 +1012,42 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
           </div>
         </div>
         <div class="vform-row">
-          <label>ご要望・ご質問 <span style="color:var(--muted);">任意</span></label>
+          <label for="visitNote">ご要望・ご質問 <span style="color:var(--muted);">任意</span></label>
           <textarea class="vform-input" id="visitNote" rows="3" style="min-height:80px;resize:vertical;" placeholder="お車でお越しの方、上記時間以外をご希望の方など、お気軽にご記入ください"></textarea>
         </div>
         <div id="visitDateError" role="alert" aria-live="assertive" style="color:#e05555;font-size:13px;margin-bottom:12px;display:none;"></div>
-      </div>
-      <div style="margin-top:24px;display:flex;gap:12px;">
-        <button class="btn-outline" onclick="switchVisit(0)">← 戻る</button>
-        <button class="btn-primary" onclick="nextFromVisitDate()">次へ：情報を入力 →</button>
-      </div>
+        <div style="margin-top:24px;display:flex;gap:12px;">
+          <button type="button" class="btn-outline" onclick="switchVisit(0)">← 戻る</button>
+          <button type="submit" class="btn-primary">次へ：情報を入力 →</button>
+        </div>
+      </form>
     </div>
 
     <div id="vstep2" class="visit-panel">
       <h3 style="font-family:var(--serif);font-size:18px;color:var(--navy2);margin-bottom:24px;">予約情報のご入力</h3>
-      <div class="vform">
+      <form class="vform" onsubmit="submitVisitForm(document.getElementById('visitSubmitBtn')); return false;">
         <div class="vform-row2">
           <div class="vform-row">
-            <label>お名前 <span>必須</span></label>
+            <label for="visitName">お名前 <span>必須</span></label>
             <input class="vform-input" type="text" id="visitName" autocomplete="name" placeholder="山田 太郎">
           </div>
           <div class="vform-row">
-            <label>参加人数 <span>必須</span></label>
+            <label for="visitHeadcount">参加人数 <span>必須</span></label>
             <select class="vform-select" id="visitHeadcount">
               <option>1名</option><option>2名</option><option>3名</option><option>4名以上</option>
             </select>
           </div>
         </div>
         <div class="vform-row">
-          <label>電話番号 <span>必須</span></label>
+          <label for="visitTel">電話番号 <span>必須</span></label>
           <input class="vform-input" type="tel" id="visitTel" autocomplete="tel" inputmode="tel" placeholder="090-0000-0000">
         </div>
         <div class="vform-row">
-          <label>メールアドレス <span>必須</span></label>
+          <label for="visitEmail">メールアドレス <span>必須</span></label>
           <input class="vform-input" type="email" id="visitEmail" autocomplete="email" inputmode="email" placeholder="example@mail.com">
         </div>
         <div class="vform-row">
-          <label>メールアドレス（確認） <span>必須</span></label>
+          <label for="visitEmail2">メールアドレス（確認） <span>必須</span></label>
           <input class="vform-input" type="email" id="visitEmail2" autocomplete="email" inputmode="email" placeholder="example@mail.com（再入力）">
         </div>
 
@@ -1026,13 +1060,13 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
             </div>
             <div id="ihaiFields" style="display:none;">
               <div class="vform-row">
-                <label>ご遺骨の数</label>
+                <label for="visitBoneCount">ご遺骨の数</label>
                 <select class="vform-select" id="visitBoneCount">
                   <option>1柱</option><option>2柱</option><option>3柱</option><option>4柱以上</option>
                 </select>
               </div>
               <div class="vform-row">
-                <label>現在の管理場所</label>
+                <label for="visitBoneLoc">現在の管理場所</label>
                 <select class="vform-select" id="visitBoneLoc">
                   <option>選択してください</option>
                   <option>寺院</option><option>霊園</option>
@@ -1040,7 +1074,7 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
                 </select>
               </div>
               <div class="vform-row">
-                <label>ご遺骨の管理住所</label>
+                <label for="visitBoneAddr">ご遺骨の管理住所</label>
                 <input class="vform-input" type="text" id="visitBoneAddr" placeholder="〒000-0000 都道府県市区町村...">
               </div>
             </div>
@@ -1050,10 +1084,10 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
         <div class="cf-turnstile" data-sitekey="0x4AAAAAAC_oXRrYWjg7pCkf" style="margin-top:16px;"></div>
         <div id="visitFormFeedback" class="form-feedback" role="alert" aria-live="assertive" hidden></div>
         <div style="display:flex;gap:12px;margin-top:16px;">
-          <button class="btn-outline" onclick="switchVisit(1)">← 戻る</button>
-          <button class="btn-primary" onclick="submitVisitForm(this)">見学を予約する</button>
+          <button type="button" class="btn-outline" onclick="switchVisit(1)">← 戻る</button>
+          <button type="submit" class="btn-primary" id="visitSubmitBtn">見学を予約する</button>
         </div>
-      </div>
+      </form>
     </div>
 
     <div id="vstep3" class="visit-panel">
@@ -1064,6 +1098,12 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
           ご登録ありがとうございます。<br>
           担当者よりご連絡のうえ、詳細をご案内いたします。
         </p>
+        <div id="visitCodeBox" style="display:none;background:var(--gold-pale);border:1px solid var(--gold);border-radius:4px;padding:16px 20px;max-width:440px;margin:0 auto 20px;">
+          <div style="font-size:11px;letter-spacing:0.3em;color:var(--gold);margin-bottom:6px;">RECEIPT NUMBER</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">見学受付番号</div>
+          <div id="visitCodeDisplay" style="font-family:var(--serif);font-size:20px;font-weight:700;color:var(--navy2);letter-spacing:1px;">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">お問い合わせ時にこちらの番号をお伝えください</div>
+        </div>
         <div style="background:var(--off);border-left:3px solid var(--gold);padding:20px;max-width:440px;margin:0 auto 24px;text-align:left;">
           <div style="font-size:11px;letter-spacing:0.3em;color:var(--gold);margin-bottom:8px;">CONTACT</div>
           <div style="font-size:14px;color:var(--text);line-height:1.7;">
@@ -1195,27 +1235,28 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
       <div class="apply-panel" id="ap0" style="display:block;">
         <h3 style="font-family:var(--serif);font-size:18px;color:var(--white);margin-bottom:20px;">お寺・納骨堂をお選びください</h3>
         <div class="temple-grid" id="templeGrid">
-          <div class="temple-card" onclick="selectTemple(this,'サンプル2寺　納骨堂','千葉県市川市',90000,10000)">
+          <button type="button" class="temple-card" onclick="selectTemple(this,'サンプル2寺　納骨堂','千葉県市川市',90000,10000)">
             <div class="temple-card-name">サンプル2寺　納骨堂</div>
             <div class="temple-card-area">千葉県市川市 · 浄土真宗</div>
             <div style="margin-top:4px;font-size:10px;opacity:0.6;">永代供養 · QR管理 · 個別安置</div>
-          </div>
-          <div class="temple-card" onclick="selectTemple(this,'サンプル3　永代供養墓','東京都江東区',90000,10000)">
+          </button>
+          <button type="button" class="temple-card" onclick="selectTemple(this,'サンプル3　永代供養墓','東京都江東区',90000,10000)">
             <div class="temple-card-name">サンプル3　永代供養墓</div>
             <div class="temple-card-area">東京都江東区 · 真言宗</div>
             <div style="margin-top:4px;font-size:10px;opacity:0.6;">永代供養 · QR管理 · 個別安置</div>
-          </div>
-          <div class="temple-card" onclick="selectTemple(this,'サンプル寺　永代供養墓','東京都台東区',90000,20000)">
+          </button>
+          <button type="button" class="temple-card" onclick="selectTemple(this,'サンプル寺　永代供養墓','東京都台東区',90000,20000)">
             <div class="temple-card-name">サンプル寺　永代供養墓</div>
             <div class="temple-card-area">東京都台東区 · 浄土宗</div>
             <div style="margin-top:4px;font-size:10px;opacity:0.6;">永代供養 · QR管理 · 個別安置</div>
-          </div>
-          <div class="temple-card" onclick="selectTemple(this,'サンプル寺　納骨堂','東京都中央区',90000,10000)">
+          </button>
+          <button type="button" class="temple-card" onclick="selectTemple(this,'サンプル寺　納骨堂','東京都中央区',90000,10000)">
             <div class="temple-card-name">サンプル寺　納骨堂</div>
             <div class="temple-card-area">東京都中央区 · 宗派不問</div>
             <div style="margin-top:4px;font-size:10px;opacity:0.6;">永代供養 · QR管理 · 個別安置</div>
-          </div>
+          </button>
         </div>
+        <div id="templeSelectFeedback" class="form-feedback" role="alert" aria-live="assertive" hidden></div>
         <button class="btn-primary" onclick="nextFromTemple()">次へ →</button>
       </div>
 
@@ -1261,91 +1302,96 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
       <div class="apply-panel" id="ap3">
         <h3 style="font-family:var(--serif);font-size:18px;color:var(--white);margin-bottom:20px;">お客様情報のご入力</h3>
         <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:20px;">すべて必須項目です</p>
+        <form onsubmit="nextFromInfo(); return false;">
         <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="apply-row">
             <div>
-              <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">氏名 <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoName" name="infoName" placeholder="山田 太郎" autocomplete="name" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <label class="apply-label" for="infoName">氏名 <span class="req">*</span></label>
+              <input class="apply-input" type="text" id="infoName" name="infoName" placeholder="山田 太郎" autocomplete="name">
             </div>
             <div>
-              <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">ふりがな <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoKana" autocomplete="off" placeholder="やまだ たろう" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <label class="apply-label" for="infoKana">ふりがな <span class="req">*</span></label>
+              <input class="apply-input" type="text" id="infoKana" autocomplete="off" placeholder="やまだ たろう">
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="apply-row">
             <div>
-              <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">ご年齢 <span style="color:#e55;">*</span></label>
-              <input type="number" id="infoAge" autocomplete="off" placeholder="例:65" min="0" max="120" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <label class="apply-label" for="infoAge">ご年齢 <span class="req">*</span></label>
+              <input class="apply-input" type="number" id="infoAge" autocomplete="off" placeholder="例:65" min="0" max="120">
             </div>
             <div></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="apply-row">
             <div>
-              <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">郵便番号 <span style="color:#e55;">*</span></label>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <input type="text" id="infoZip" autocomplete="postal-code" inputmode="numeric" placeholder="000-0000" maxlength="8" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;flex:1;" oninput="autoFillAddress(this.value)">
-                <button type="button" onclick="autoFillAddress(document.getElementById('infoZip').value)" style="padding:10px 12px;background:var(--gold);color:var(--navy);border:none;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap;">住所検索</button>
+              <label class="apply-label" for="infoZip">郵便番号 <span class="req">*</span></label>
+              <div class="apply-zip-wrap">
+                <input class="apply-input" type="text" id="infoZip" autocomplete="postal-code" inputmode="numeric" placeholder="000-0000" maxlength="8" style="flex:1;" oninput="autoFillAddress(this.value)">
+                <button type="button" class="apply-zip-btn" onclick="autoFillAddress(document.getElementById('infoZip').value)">住所検索</button>
               </div>
             </div>
             <div></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="apply-row">
             <div>
-              <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">都道府県 <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoPref" autocomplete="address-level1" placeholder="東京都" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <label class="apply-label" for="infoPref">都道府県 <span class="req">*</span></label>
+              <input class="apply-input" type="text" id="infoPref" autocomplete="address-level1" placeholder="東京都">
             </div>
             <div>
-              <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">市区町村 <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoCity" autocomplete="address-level2" placeholder="渋谷区神宮前" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <label class="apply-label" for="infoCity">市区町村 <span class="req">*</span></label>
+              <input class="apply-input" type="text" id="infoCity" autocomplete="address-level2" placeholder="渋谷区神宮前">
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="apply-row">
             <div>
-              <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">番地以降 <span style="color:#e55;">*</span></label>
-              <input type="text" id="infoStreet" autocomplete="address-line1" placeholder="1-2-3" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
-            </div>
-            <div></div>
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">建物名・部屋番号など</label>
-            <input type="text" id="infoBldg" autocomplete="address-line2" placeholder="〇〇マンション 101号室" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-            <div>
-              <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">電話番号 <span style="color:#e55;">*</span></label>
-              <input type="tel" id="infoTel" autocomplete="tel" inputmode="tel" placeholder="090-0000-0000" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+              <label class="apply-label" for="infoStreet">番地以降 <span class="req">*</span></label>
+              <input class="apply-input" type="text" id="infoStreet" autocomplete="address-line1" placeholder="1-2-3">
             </div>
             <div></div>
           </div>
           <div>
-            <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">メールアドレス <span style="color:#e55;">*</span></label>
-            <input type="email" id="infoEmail" autocomplete="email" inputmode="email" placeholder="example@mail.com" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+            <label class="apply-label" for="infoBldg">建物名・部屋番号など</label>
+            <input class="apply-input" type="text" id="infoBldg" autocomplete="address-line2" placeholder="〇〇マンション 101号室">
+          </div>
+          <div class="apply-row">
+            <div>
+              <label class="apply-label" for="infoTel">電話番号 <span class="req">*</span></label>
+              <input class="apply-input" type="tel" id="infoTel" autocomplete="tel" inputmode="tel" placeholder="090-0000-0000">
+            </div>
+            <div></div>
           </div>
           <div>
-            <label style="display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;">メールアドレス（確認） <span style="color:#e55;">*</span></label>
-            <input type="email" id="infoEmail2" autocomplete="email" inputmode="email" placeholder="example@mail.com（再入力）" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--white);font-size:14px;box-sizing:border-box;">
+            <label class="apply-label" for="infoEmail">メールアドレス <span class="req">*</span></label>
+            <input class="apply-input" type="email" id="infoEmail" autocomplete="email" inputmode="email" placeholder="example@mail.com">
+          </div>
+          <div>
+            <label class="apply-label" for="infoEmail2">メールアドレス（確認） <span class="req">*</span></label>
+            <input class="apply-input" type="email" id="infoEmail2" autocomplete="email" inputmode="email" placeholder="example@mail.com（再入力）">
           </div>
         </div>
         <div id="infoError" role="alert" aria-live="assertive" style="color:#e55;font-size:13px;margin-bottom:12px;display:none;"></div>
         <div style="display:flex;gap:12px;">
-          <button class="btn-outline" onclick="goApply(2)">← 戻る</button>
-          <button class="btn-primary" style="flex:1;" onclick="nextFromInfo()">次へ →</button>
+          <button type="button" class="btn-outline" onclick="goApply(2)">← 戻る</button>
+          <button type="submit" class="btn-primary" style="flex:1;">次へ →</button>
         </div>
+        </form>
       </div>
 
       <div class="apply-panel" id="ap4">
         <h3 style="font-family:var(--serif);font-size:18px;color:var(--white);margin-bottom:20px;">規約・同意</h3>
         <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:20px;height:200px;overflow-y:auto;margin-bottom:20px;font-size:13px;color:rgba(255,255,255,0.6);line-height:2;">
-          <strong style="color:var(--white);display:block;margin-bottom:12px;">送骨堂 利用規約（抜粋）</strong>
-          第1条（目的）本規約は、送骨堂が提供する納骨・管理サービス（以下「本サービス」）の利用条件を定めるものです。<br><br>
-          第2条（契約の成立）申込みは本規約への同意をもって成立します。<br><br>
-          第3条（費用）契約金および管理費は一括前払いとします。<br><br>
-          第4条（管理）お預かりしたご遺骨は、提携寺院にて丁重にお守りします。<br><br>
-          第5条（配送）ご希望によりご自宅や施設へのご遺骨配送サービスをご利用いただけます。<br><br>
-          第6条（解約）サービス開始後の中途解約はお受けいたしかねます。詳細は利用規約第8条をご確認ください。<br><br>
-          第7条（個人情報）お客様の個人情報は、プライバシーポリシーに従い適切に管理します。<br><br>
-          ※全文は<a href="/terms.html" target="_blank" style="color:var(--gold-light);">利用規約ページ</a>をご確認ください。
+          <strong style="color:var(--white);display:block;margin-bottom:12px;">送骨堂 利用規約（要点）</strong>
+          <ul style="list-style:none;padding:0;margin:0;">
+            <li style="padding-left:16px;position:relative;margin-bottom:8px;"><span style="position:absolute;left:0;color:var(--gold);">●</span>本サービスは、提携寺院の納骨堂または永代供養墓でご遺骨をお預かりし、ご希望に応じて送骨サービスをご提供するものです。</li>
+            <li style="padding-left:16px;position:relative;margin-bottom:8px;"><span style="position:absolute;left:0;color:var(--gold);">●</span>ご契約は、本規約・プライバシーポリシーへの同意をもって成立します。</li>
+            <li style="padding-left:16px;position:relative;margin-bottom:8px;"><span style="position:absolute;left:0;color:var(--gold);">●</span>契約金および管理費は一括前払いとなります（銀行振込）。</li>
+            <li style="padding-left:16px;position:relative;margin-bottom:8px;"><span style="position:absolute;left:0;color:var(--gold);">●</span>お預かりしたご遺骨は、提携寺院にて丁重にお守りし、QRコードで管理いたします。</li>
+            <li style="padding-left:16px;position:relative;margin-bottom:8px;"><span style="position:absolute;left:0;color:var(--gold);">●</span>ご希望の日時にご自宅や施設への送骨サービスをご利用いただけます。</li>
+            <li style="padding-left:16px;position:relative;margin-bottom:8px;"><span style="position:absolute;left:0;color:var(--gold);">●</span>サービス開始後の中途解約は原則お受けできません。詳細は利用規約（契約の解除）をご確認ください。</li>
+            <li style="padding-left:16px;position:relative;margin-bottom:8px;"><span style="position:absolute;left:0;color:var(--gold);">●</span>お客様の個人情報は、プライバシーポリシーに従い適切に管理いたします。</li>
+          </ul>
+          <div style="margin-top:12px;">※ 規約全文は<a href="/terms.html" target="_blank" rel="noopener" style="color:var(--gold-light);">利用規約ページ</a>をご確認ください。</div>
         </div>
+        <form onsubmit="submitApplyFlow(document.getElementById('nextFromConsent')); return false;">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:12px;">
           <input type="checkbox" id="consentCheck" onchange="checkConsent()" style="width:18px;height:18px;accent-color:var(--gold);flex-shrink:0;margin-top:2px;">
           <span style="font-size:14px;color:var(--white);line-height:1.6;"><a href="/terms.html" target="_blank" rel="noopener" style="color:var(--gold-light);text-decoration:underline;">利用規約</a>に同意します</span>
@@ -1357,14 +1403,21 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
         <div class="cf-turnstile" data-sitekey="0x4AAAAAAC_oXRrYWjg7pCkf" style="margin-bottom:16px;"></div>
         <div id="applyFeedback" class="form-feedback" role="alert" aria-live="assertive" hidden></div>
         <div style="display:flex;gap:12px;">
-          <button class="btn-outline" onclick="goApply(3)">← 戻る</button>
-          <button class="btn-primary" id="nextFromConsent" disabled style="flex:1;" onclick="submitApplyFlow(this)">次へ：今後の流れ →</button>
+          <button type="button" class="btn-outline" onclick="goApply(3)">← 戻る</button>
+          <button type="submit" class="btn-primary" id="nextFromConsent" disabled style="flex:1;">次へ：今後の流れ →</button>
         </div>
+        </form>
       </div>
 
       <div class="apply-panel" id="ap5">
         <h3 style="font-family:var(--serif);font-size:22px;color:var(--gold-light);margin-bottom:8px;text-align:center;">お申込を受け付けました</h3>
         <p style="text-align:center;color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:32px;">ご登録ありがとうございます</p>
+        <div id="customerCodeBox" style="display:none;background:rgba(201,162,39,0.12);border:1px solid rgba(201,162,39,0.5);border-radius:6px;padding:20px;max-width:440px;margin:0 auto 24px;text-align:center;">
+          <div style="font-size:11px;letter-spacing:0.3em;color:var(--gold);margin-bottom:6px;">RECEIPT NUMBER</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px;">お申込受付番号</div>
+          <div id="customerCodeDisplay" style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--gold-light);letter-spacing:1px;">—</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:6px;">お問い合わせ時にこちらの番号をお伝えください</div>
+        </div>
         <div style="background:rgba(201,162,39,0.08);border:1px solid rgba(201,162,39,0.3);border-radius:6px;padding:28px;margin-bottom:28px;">
           <div style="font-size:13px;letter-spacing:0.3em;color:var(--gold);margin-bottom:20px;">今後の流れ</div>
           <div style="display:flex;flex-direction:column;gap:20px;">
@@ -1396,6 +1449,14 @@ footer { background: #080f1a; padding: 64px 40px 32px; color: rgba(255,255,255,0
                 <div style="font-size:13px;color:rgba(255,255,255,0.45);">QRコード付き管理カードをご郵送。ご利用開始となります。</div>
               </div>
             </div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border-left:3px solid var(--gold);padding:20px;max-width:440px;margin:0 auto 28px;">
+          <div style="font-size:11px;letter-spacing:0.3em;color:var(--gold);margin-bottom:8px;">CONTACT</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.85);line-height:1.7;">
+            お急ぎの場合はお電話ください：<br>
+            <strong style="font-family:var(--serif);font-size:18px;color:var(--gold-light);">0120-XXX-XXX</strong><br>
+            <span style="font-size:12px;color:rgba(255,255,255,0.45);">受付時間 10:00〜17:00（年中無休）</span>
           </div>
         </div>
         <p style="text-align:center;font-size:13px;color:rgba(255,255,255,0.35);margin-bottom:24px;">ご不明な点はお気軽にお問い合わせください</p>
@@ -1562,6 +1623,29 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+// R7: モバイルドロワーのフォーカストラップ(Tab/Shift+Tabで循環)
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Tab' && e.keyCode !== 9) return;
+  var drawer = document.getElementById('mobileDrawer');
+  if (!drawer || !drawer.classList.contains('open')) return;
+  var focusables = drawer.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  if (focusables.length === 0) return;
+  var first = focusables[0];
+  var last = focusables[focusables.length - 1];
+  // Shift+Tab で最初の要素からさらに戻ろうとしたら最後へ
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  }
+  // Tab で最後の要素からさらに進もうとしたら最初へ
+  else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+});
+
 // ── CTA float: フッター到達で自動非表示 ──
 (function() {
   var cta = document.querySelector('.cta-float');
@@ -1638,7 +1722,7 @@ function submitContactForm(btn) {
   if (!isValidEmail(email)) { showFeedback('contactFeedback', 'メールアドレスの形式が正しくありません。', 'error'); return; }
   if (tel && !isValidTel(tel)) { showFeedback('contactFeedback', '電話番号の形式が正しくありません。(半角数字10桁以上)', 'error'); return; }
   hideFeedback('contactFeedback');
-  btn.disabled = true; btn.textContent = '送信中...';
+  btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.textContent = '送信中...';
   fetch('https://jbnhvwncddvvtpaigzeq.supabase.co/functions/v1/form-contact', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1648,16 +1732,17 @@ function submitContactForm(btn) {
   .then(function(data) {
     if (data && data.success) {
       btn.textContent = '送信完了';
+      btn.removeAttribute('aria-busy');
       // 成功時は disabled のまま（二重送信防止）
       showFeedback('contactFeedback', 'お問い合わせを受け付けました。担当者からのご連絡をお待ちください。', 'success');
     } else {
-      btn.disabled = false; btn.textContent = '送信する';
+      btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = '送信する';
       resetTurnstile('#contact');
       showFeedback('contactFeedback', '送信に失敗しました。時間をおいて再度お試しください。', 'error');
     }
   })
   .catch(function() {
-    btn.disabled = false; btn.textContent = '送信する';
+    btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = '送信する';
     resetTurnstile('#contact');
     showFeedback('contactFeedback', '送信に失敗しました。時間をおいて再度お試しください。', 'error');
   });
@@ -1754,6 +1839,15 @@ function updateResults() {
   } else if (activeTab.includes('金額')) {
     var priceMax = parseInt((document.getElementById('priceRange') || {}).value || 999999);
     filtered = filtered.filter(function(t) { return t.price <= priceMax; });
+  }
+  // R23: 並び替え処理
+  var sortVal = (document.getElementById('searchSort') || {}).value || 'default';
+  if (sortVal === 'price-asc') {
+    filtered = filtered.slice().sort(function(a, b) { return (a.price || 0) - (b.price || 0); });
+  } else if (sortVal === 'price-desc') {
+    filtered = filtered.slice().sort(function(a, b) { return (b.price || 0) - (a.price || 0); });
+  } else if (sortVal === 'fee-asc') {
+    filtered = filtered.slice().sort(function(a, b) { return (a.annualFee || 0) - (b.annualFee || 0); });
   }
   if (filtered.length === 0) {
     list.innerHTML = '<p style="color:var(--muted);padding:24px 0;text-align:center;">条件に一致する寺院が見つかりませんでした。</p>';
@@ -2033,6 +2127,9 @@ function resetApplyForm() {
   document.querySelectorAll('.apply-step-btn').forEach(function(b) { b.classList.remove('completed'); });
   // エラー表示クリア
   var infoErr = document.getElementById('infoError'); if (infoErr) { infoErr.textContent = ''; infoErr.style.display = 'none'; }
+  // R22: customer code box クリア
+  var ccBox = document.getElementById('customerCodeBox'); if (ccBox) ccBox.style.display = 'none';
+  var ccDisp = document.getElementById('customerCodeDisplay'); if (ccDisp) ccDisp.textContent = '—';
   // 費用確認の表示リフレッシュ
   updateApplySummary();
   // Turnstile もリセット
@@ -2108,11 +2205,11 @@ async function submitApplyData() {
         'cf-turnstile-response': getTurnstileToken('#apply'),
       })
     });
-    if (!res.ok) return false;
+    if (!res.ok) return { ok: false };
     var data = await res.json().catch(function() { return {}; });
-    return data.success !== false;
+    return { ok: data.success !== false, customer_code: data.customer_code || '' };
   } catch (e) {
-    return false;
+    return { ok: false };
   }
 }
 
@@ -2120,14 +2217,24 @@ async function submitApplyData() {
 async function submitApplyFlow(btn) {
   if (!btn || btn.disabled) return;
   btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
   var originalText = btn.textContent;
   btn.textContent = '送信中…';
-  var ok = await submitApplyData();
-  if (ok) {
+  var result = await submitApplyData();
+  if (result && result.ok) {
+    btn.removeAttribute('aria-busy');
+    // R22: customer_code を画面に表示
+    if (result.customer_code) {
+      var codeEl = document.getElementById('customerCodeDisplay');
+      var codeBox = document.getElementById('customerCodeBox');
+      if (codeEl) codeEl.textContent = result.customer_code;
+      if (codeBox) codeBox.style.display = 'block';
+    }
     markStepCompleted(5);
     goApply(5);
   } else {
     btn.disabled = false;
+    btn.removeAttribute('aria-busy');
     btn.textContent = originalText;
     resetTurnstile('#apply');
     showFeedback('applyFeedback', '申込の送信に失敗しました。時間をおいて再度お試しください。', 'error');
@@ -2163,7 +2270,7 @@ function submitVisitForm(btn) {
   if (!isValidTel(tel)) { showFeedback('visitFormFeedback', '電話番号の形式が正しくありません。(半角数字10桁以上)', 'error'); return; }
   hideFeedback('visitFormFeedback');
 
-  if (btn) { btn.disabled = true; btn.textContent = '送信中...'; }
+  if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.textContent = '送信中...'; }
   fetch('https://jbnhvwncddvvtpaigzeq.supabase.co/functions/v1/form-visit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2181,16 +2288,23 @@ function submitVisitForm(btn) {
   .then(function(r) { return r.json(); })
   .then(function(data) {
     if (data && data.success) {
-      if (btn) btn.textContent = '送信完了';
+      if (btn) { btn.textContent = '送信完了'; btn.removeAttribute('aria-busy'); }
+      // R22: visit_code を画面に表示
+      if (data.visit_code) {
+        var codeEl = document.getElementById('visitCodeDisplay');
+        var codeBox = document.getElementById('visitCodeBox');
+        if (codeEl) codeEl.textContent = data.visit_code;
+        if (codeBox) codeBox.style.display = 'block';
+      }
       switchVisit(3);
     } else {
-      if (btn) { btn.disabled = false; btn.textContent = '見学を予約する'; }
+      if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = '見学を予約する'; }
       resetTurnstile('#visit');
       showFeedback('visitFormFeedback', '送信に失敗しました。時間をおいて再度お試しください。', 'error');
     }
   })
   .catch(function() {
-    if (btn) { btn.disabled = false; btn.textContent = '見学を予約する'; }
+    if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = '見学を予約する'; }
     resetTurnstile('#visit');
     showFeedback('visitFormFeedback', '送信に失敗しました。時間をおいて再度お試しください。', 'error');
   });
